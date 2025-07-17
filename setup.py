@@ -6,15 +6,12 @@ from setuptools import setup, find_packages
 
 
 def get_version():
-    with open('device_detector/__init__.py', 'r') as f:
-        line = f.readline()
-        match = re.match(r'__version__ = \'([\d\.]+)\'', line)
-
-        if not match:
-            raise ImportError("Can't read the version of device_detector")
-
-        version = match.group(1)
-        return version
+    with open('ua_extract/__init__.py', 'r') as f:
+        for line in f:
+            match = re.match(r"__version__\s*=\s*['\"]([\d\.]+)['\"]", line)
+            if match:
+                return match.group(1)
+    raise ImportError("Can't find version string in ua_extract/__init__.py")
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -28,20 +25,23 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Dave Burkholder',
-    author_email='dave@thinkwelldesigns.com',
+    author_email='pranavagrawal321@gmail.com',
     packages=find_packages(exclude=["tests"]),
     package_dir={'': '.'},
+    include_package_data=True,
+    package_data={'': ['*.yml']},
     license='MIT',
     zip_safe=True,
-    url='https://github.com/thinkwelltwd/device_detector',
-    include_package_data=True,
-    package_data={
-        '': ['*.yml'],
-    },
+    url='https://github.com/pranavagrawal321/ua_extract',
     install_requires=[
         'pyyaml',
         'regex',
     ],
+    entry_points={
+        "console_scripts": [
+            "ua_extract=ua_extract.__main__:main",
+        ],
+    },
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -50,8 +50,7 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
 )
