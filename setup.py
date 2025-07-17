@@ -19,12 +19,12 @@ with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
 setup(
-    name='device_detector',
+    name='ua_extract',
     version=get_version(),
     description="Python3 port of matomo's Device Detector",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author='Dave Burkholder',
+    author='Pranav Agrawal',
     author_email='pranavagrawal321@gmail.com',
     packages=find_packages(exclude=["tests"]),
     package_dir={'': '.'},

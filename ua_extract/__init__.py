@@ -1,4 +1,4 @@
-__version__ = '5.0.1'
+__version__ = '1.0.0'
 from .settings import *
 from .parser import *
 from .device_detector import DeviceDetector

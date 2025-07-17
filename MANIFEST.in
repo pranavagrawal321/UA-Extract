@@ -1,5 +1,5 @@
 include requirements.txt
 include README.md
-include device_detector/appids/*.yml device_detector/appdetails/*.yml
-recursive-include device_detector/regexes *
+include ua_extract/appids/*.yml ua_extract/appdetails/*.yml
+recursive-include ua_extract/regexes *
 global-exclude *~
