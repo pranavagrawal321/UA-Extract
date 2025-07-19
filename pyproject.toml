@@ -9,7 +9,7 @@ description = "Python3 port of matomo's Device Detector"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-  { name = "Dave Burkholder", email = "pranavagrawal321@gmail.com" }
+  { name = "Pranav Agrawal", email = "pranavagrawal321@gmail.com" }
 ]
 dependencies = [
   "pyyaml",

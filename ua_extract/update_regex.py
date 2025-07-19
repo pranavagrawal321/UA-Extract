@@ -49,11 +49,20 @@ class Regexes:
                     "sparse-checkout", "set", self.sparse_dir
                 ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                if self.cleanup and os.path.exists(self.upstream_path):
+                src_dir = os.path.join(temp, self.sparse_dir)
+
+                if os.path.exists(self.upstream_path):
                     shutil.rmtree(self.upstream_path)
 
-                os.makedirs(os.path.dirname(self.upstream_path), exist_ok=True)
-                shutil.move(os.path.join(temp, self.sparse_dir), self.upstream_path)
+                os.makedirs(self.upstream_path, exist_ok=True)
+
+                for item in os.listdir(src_dir):
+                    s = os.path.join(src_dir, item)
+                    d = os.path.join(self.upstream_path, item)
+                    if os.path.isdir(s):
+                        shutil.copytree(s, d)
+                    else:
+                        shutil.copy2(s, d)
 
                 init_file = os.path.join(self.upstream_path, "__init__.py")
                 open(init_file, "a").close()
