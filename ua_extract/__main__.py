@@ -16,11 +16,26 @@ def main():
         default=os.path.join(ROOT_PATH, "regexes", "upstream"),
         help="Destination path to place regexes content"
     )
-
-    update_parser.add_argument("--repo", default="https://github.com/matomo-org/device-detector.git", help="Git repo URL")
-    update_parser.add_argument("--branch", default="master", help="Git branch name")
-    update_parser.add_argument("--sparse-dir", default="regexes", help="Sparse directory inside repo")
-    update_parser.add_argument("--cleanup", action="store_true", help="Deleting existing regex")
+    update_parser.add_argument(
+        "--repo",
+        default="https://github.com/matomo-org/device-detector.git",
+        help="Git repo URL"
+    )
+    update_parser.add_argument(
+        "--branch",
+        default="master",
+        help="Git branch name"
+    )
+    update_parser.add_argument(
+        "--sparse-dir",
+        default="regexes",
+        help="Sparse directory inside repo"
+    )
+    update_parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Deleting existing regex"
+    )
 
     args = parser.parse_args()
 

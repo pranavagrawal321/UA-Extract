@@ -1,4 +1,5 @@
 Copyright (c) 2018 Dave Burkholder, Thinkwell Designs
+Copyright (c) 2025 Pranav Agrawal
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -17,3 +18,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Changes made by Pranav Agrawal (2025):
+- Updated regular expressions for improved user-agent parsing.
+- Added an automation script to update user-agent regexes on demand.
+- Implemented CLI tool for easy updating of regexes.
+- Fixed bug where user-agent patterns were not properly matching newer browser versions.
