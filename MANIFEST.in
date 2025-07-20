@@ -2,4 +2,5 @@ include requirements.txt
 include README.md
 include ua_extract/appids/*.yml ua_extract/appdetails/*.yml
 recursive-include ua_extract/regexes *
+recursive-include ua_extract *.yml
 global-exclude *~

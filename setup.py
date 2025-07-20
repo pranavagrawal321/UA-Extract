@@ -4,7 +4,6 @@ import os
 import re
 from setuptools import setup, find_packages
 
-
 def get_version():
     with open('ua_extract/__init__.py', 'r') as f:
         for line in f:
@@ -12,7 +11,6 @@ def get_version():
             if match:
                 return match.group(1)
     raise ImportError("Can't find version string in ua_extract/__init__.py")
-
 
 here = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -27,12 +25,12 @@ setup(
     author='Pranav Agrawal',
     author_email='pranavagrawal321@gmail.com',
     packages=find_packages(exclude=["tests"]),
-    package_dir={'': '.'},
     include_package_data=True,
-    package_data={'': ['*.yml']},
     license='MIT',
+    license_files=['LICENSE'],
     zip_safe=True,
     url='https://github.com/pranavagrawal321/ua_extract',
+    python_requires='>=3.8',
     install_requires=[
         'pyyaml',
         'regex',
