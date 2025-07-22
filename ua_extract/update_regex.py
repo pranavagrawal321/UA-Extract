@@ -6,7 +6,6 @@ import sys
 import logging
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(ROOT_PATH)
 
 logging.basicConfig(
     level=logging.INFO,
