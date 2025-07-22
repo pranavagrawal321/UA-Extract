@@ -2,7 +2,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-import sys
 import logging
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
