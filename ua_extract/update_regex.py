@@ -14,7 +14,6 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +85,7 @@ def _update_with_git(self: Regexes):
                 ("Copying files...", 1),
                 ("Finalizing...", 1)
             ]
-            task = progress.add_task("[cyan]Git Update Progress", total=sum(s[1] for s in steps))
+            task = progress.add_task("[cyan]Git Update", total=sum(s[1] for s in steps))
 
             subprocess.run([
                 "git", "clone",
@@ -228,7 +227,7 @@ async def _download_from_github_api(github_url, output_dir=None, token=None):
         TransferSpeedColumn(), TimeElapsedColumn()
     ) as progress:
         tasks = []
-        task = progress.add_task("[cyan]Downloading files...", total=len(contents))
+        task = progress.add_task("[cyan]Api Update", total=len(contents))
 
         for content in contents:
             name = content.get("name")
