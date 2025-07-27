@@ -1,13 +1,21 @@
 import os
 import shutil
-import subprocess
-import tempfile
 import asyncio
-from enum import Enum
 import aiohttp
+import logging
+import tempfile
+import subprocess
+from enum import Enum
+from typing import Optional
 from urllib.parse import urlparse
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn, TransferSpeedColumn
+
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class UpdateMethod(Enum):
@@ -32,13 +40,15 @@ class Regexes:
         repo_url: str = "https://github.com/matomo-org/device-detector.git",
         branch: str = "master",
         sparse_dir: str = "regexes",
-        cleanup: bool = True
+        cleanup: bool = True,
+        github_token: Optional[str] = None
     ):
         self.upstream_path = upstream_path
         self.repo_url = repo_url
         self.branch = branch
         self.sparse_dir = sparse_dir
         self.cleanup = cleanup
+        self.github_token = github_token
 
     def update_regexes(self, method: str = "git"):
         try:
@@ -62,10 +72,22 @@ class Regexes:
 
 @register(UpdateMethod.GIT)
 def _update_with_git(self: Regexes):
-    print("[+] Updating regexes using Git...")
-
+    logger.info("[+] Updating regexes using Git...")
     try:
-        with tempfile.TemporaryDirectory() as temp_dir:
+        with tempfile.TemporaryDirectory() as temp_dir, Progress(
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+            BarColumn(), "[progress.percentage]{task.percentage:>3.1f}%",
+            TimeElapsedColumn()
+        ) as progress:
+
+            steps = [
+                ("Cloning repository...", 1),
+                ("Setting sparse-checkout...", 1),
+                ("Copying files...", 1),
+                ("Finalizing...", 1)
+            ]
+            task = progress.add_task("[cyan]Git Update Progress", total=sum(s[1] for s in steps))
+
             subprocess.run([
                 "git", "clone",
                 "--depth", "1",
@@ -75,11 +97,13 @@ def _update_with_git(self: Regexes):
                 self.repo_url,
                 temp_dir
             ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            progress.advance(task)
 
             subprocess.run([
                 "git", "-C", temp_dir,
                 "sparse-checkout", "set", self.sparse_dir
             ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            progress.advance(task)
 
             src_dir = os.path.join(temp_dir, self.sparse_dir)
             self._prepare_upstream_dir()
@@ -91,14 +115,16 @@ def _update_with_git(self: Regexes):
                     shutil.copytree(s, d)
                 else:
                     shutil.copy2(s, d)
+            progress.advance(task)
 
-        self._touch_init_file()
-        print("[✓] Regexes updated successfully via Git.")
+            self._touch_init_file()
+            progress.advance(task)
 
+        logger.info("Regexes updated successfully via Git")
     except subprocess.CalledProcessError:
-        print("[✗] Git operation failed.")
+        logger.error("Git operation failed")
     except Exception as e:
-        print(f"[✗] Unexpected error during Git update: {e}")
+        logger.exception(f"[✗] Unexpected error during Git update: {e}")
 
 
 def _normalize_github_url(github_url: str):
@@ -125,100 +151,112 @@ def _normalize_github_url(github_url: str):
     }
 
 
-async def _get_contents(content_url):
+async def _get_contents(content_url, token=None):
     download_urls = []
+    headers = {"Authorization": f"token {token}"} if token else {}
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(content_url) as response:
+            if response.status == 403:
+                remaining = response.headers.get("X-RateLimit-Remaining", "0")
+                reset_time = response.headers.get("X-RateLimit-Reset")
+                logger.warning(f"Rate limit reached. Remaining: {remaining}. Reset at: {reset_time}")
+                raise RuntimeError("GitHub API rate limit exceeded")
+
             if response.ok:
                 response = await response.json()
                 if isinstance(response, dict):
-                    return {
+                    return [{
                         "name": response.get("name"),
                         "download_url": response.get("download_url"),
                         "content_blob": response.get("content"),
-                    }
+                    }]
+
                 for resp in response:
-                    content_name = resp.get("name")
+                    name = resp.get("name")
                     content_type = resp.get("type")
-                    content_self_url = resp.get("url")
-                    content_download_url = resp.get("download_url")
+                    self_url = resp.get("url")
+                    download_url = resp.get("download_url")
                     if content_type == "dir":
-                        sub_content = await _get_contents(content_self_url)
-                        for sub_item in sub_content:
-                            sub_item["name"] = f"{content_name}/{sub_item.get('name')}"
-                            download_urls.append(sub_item)
+                        sub = await _get_contents(self_url, token)
+                        for item in sub:
+                            item["name"] = f"{name}/{item.get('name')}"
+                            download_urls.append(item)
                     elif content_type == "file":
-                        download_urls.append(
-                            {"name": content_name, "download_url": content_download_url}
-                        )
+                        download_urls.append({"name": name, "download_url": download_url})
     return download_urls
 
 
-async def _download_content(download_url, output_file):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(download_url) as response:
-                response.raise_for_status()
-                resp_content = await response.read()
-                with open(output_file, mode="wb") as file:
-                    file.write(resp_content)
-    except BaseException:
-        print(f":warning: Failed to download {download_url!r}. Skipping this file!")
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type(Exception),
+    reraise=True
+)
+async def _download_content(download_url, output_file, token=None):
+    headers = {"Authorization": f"token {token}"} if token else {}
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        async with session.get(download_url) as response:
+            response.raise_for_status()
+            content = await response.read()
+            with open(output_file, "wb") as f:
+                f.write(content)
 
 
-async def _download_with_progress(download_url, content_filename):
-    await _download_content(download_url, content_filename)
+async def _download_with_progress(download_url, content_filename, progress, task, token=None):
+    await _download_content(download_url, content_filename, token)
+    progress.advance(task)
 
 
-async def _download_from_github_api(github_url, output_dir=None):
+async def _download_from_github_api(github_url, output_dir=None, token=None):
     repo_data = _normalize_github_url(github_url)
-    owner = repo_data.get("owner")
-    repo = repo_data.get("repo")
-    branch = repo_data.get("branch")
-    root_target = repo_data.get("target")
+    owner = repo_data["owner"]
+    repo = repo_data["repo"]
+    branch = repo_data["branch"]
     root_target_path = output_dir
+    target_path = repo_data["target_path"]
 
-    target_path = repo_data.get("target_path")
     content_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{target_path}?ref={branch}"
-
-    contents = await _get_contents(content_url)
-
-    if isinstance(contents, dict):  # single file
-        await _download_content(contents.get("download_url"), os.path.join(root_target_path, root_target))
-        return
+    contents = await _get_contents(content_url, token)
 
     os.makedirs(root_target_path, exist_ok=True)
-    download_tasks = []
 
-    for content in contents:
-        content_path = content.get("name")
-        download_url = content.get("download_url")
-        if not download_url:
-            continue
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+        BarColumn(), "[progress.percentage]{task.percentage:>3.1f}%",
+        TransferSpeedColumn(), TimeElapsedColumn()
+    ) as progress:
+        tasks = []
+        task = progress.add_task("[cyan]Downloading files...", total=len(contents))
 
-        content_parentdir = os.path.dirname(content_path)
-        content_parentdir = os.path.join(root_target_path, content_parentdir)
-        content_filename = os.path.join(root_target_path, content_path)
+        for content in contents:
+            name = content.get("name")
+            download_url = content.get("download_url")
+            if not download_url:
+                continue
 
-        os.makedirs(content_parentdir, exist_ok=True)
-        task = asyncio.create_task(_download_with_progress(download_url, content_filename))
-        download_tasks.append(task)
+            parent = os.path.dirname(name)
+            os.makedirs(os.path.join(root_target_path, parent), exist_ok=True)
+            filename = os.path.join(root_target_path, name)
 
-    await asyncio.gather(*download_tasks)
+            coro = _download_with_progress(download_url, filename, progress, task, token)
+            tasks.append(asyncio.create_task(coro))
+
+        await asyncio.gather(*tasks)
 
 
 @register(UpdateMethod.API)
 def _update_with_api(self: Regexes):
-    print("[+] Updating regexes using GitHub API...")
-
+    logger.info("[+] Updating regexes using GitHub API...")
     try:
         self._prepare_upstream_dir()
         asyncio.run(_download_from_github_api(
             "https://github.com/matomo-org/device-detector/tree/master/regexes",
-            self.upstream_path
+            self.upstream_path,
+            token=self.github_token
         ))
         self._touch_init_file()
-        print("[✓] Regexes updated successfully via API.")
+        logger.info("Regexes updated successfully via API")
     except Exception as e:
-        print(f"[✗] Unexpected error during API update: {e}")
+        logger.exception(f"[✗] Unexpected error during API update: {e}")

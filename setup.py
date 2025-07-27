@@ -12,7 +12,16 @@ def get_version():
                 return match.group(1)
     raise ImportError("Can't find version string in ua_extract/__init__.py")
 
+def parse_requirements(filename):
+    with open(filename, 'r') as f:
+        return [
+            line.strip()
+            for line in f
+            if line.strip() and not line.startswith('#')
+        ]
+
 here = os.path.abspath(os.path.dirname(__file__))
+
 with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
@@ -31,10 +40,7 @@ setup(
     zip_safe=True,
     url='https://github.com/pranavagrawal321/ua_extract',
     python_requires='>=3.8',
-    install_requires=[
-        'pyyaml',
-        'regex',
-    ],
+    install_requires=parse_requirements('requirements.txt'),
     entry_points={
         "console_scripts": [
             "ua_extract=ua_extract.__main__:main",
