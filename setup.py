@@ -33,12 +33,12 @@ setup(
     long_description_content_type='text/markdown',
     author='Pranav Agrawal',
     author_email='pranavagrawal321@gmail.com',
+    url='https://github.com/pranavagrawal321/ua_extract',
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
     license='MIT',
     license_files=['LICENSE'],
-    zip_safe=True,
-    url='https://github.com/pranavagrawal321/ua_extract',
+    zip_safe=False,
     python_requires='>=3.8',
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
@@ -52,9 +52,17 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation :: CPython',
     ],
+    project_urls={
+        "Source": "https://github.com/pranavagrawal321/ua_extract",
+        "Issues": "https://github.com/pranavagrawal321/ua_extract/issues",
+        "Documentation": "https://github.com/pranavagrawal321/ua_extract#readme"
+    }
 )
