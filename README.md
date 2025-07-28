@@ -1,3 +1,6 @@
+[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract)](https://pepy.tech/projects/ua-extract)
+[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/month)](https://pepy.tech/projects/ua-extract)[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/week)](https://pepy.tech/projects/ua-extract)
+
 # UA-Extract
 
 UA-Extract is a precise and fast user agent parser and device detector written in Python, built on top of the largest and most up-to-date user agent database from the [Matomo Device Detector](https://github.com/matomo-org/device-detector) project. It parses user agent strings to detect browsers, operating systems, devices (desktop, tablet, mobile, TV, cars, consoles, etc.), brands, and models, including rare and obscure ones.
