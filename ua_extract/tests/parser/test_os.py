@@ -2,7 +2,7 @@ from urllib.parse import unquote
 from ..base import ParserBaseTest
 from ...parser import OS, OSFragment
 from ...utils import ua_hash
-from ua_extract.device_detector import VERSION_TRUNCATION_NONE
+from ua_extract import VERSION_TRUNCATION_NONE
 
 
 class TestOS(ParserBaseTest):

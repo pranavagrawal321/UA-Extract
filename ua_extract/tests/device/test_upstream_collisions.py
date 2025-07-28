@@ -1,7 +1,7 @@
 from urllib.parse import unquote
 from ..base import DetectorBaseTest
 from ua_extract import DeviceDetector
-from ua_extract.device_detector import VERSION_TRUNCATION_NONE
+from ua_extract import VERSION_TRUNCATION_NONE
 
 
 class TestCollisions(DetectorBaseTest):

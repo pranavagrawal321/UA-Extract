@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-UA-Extract CLI tool for updating regex files from an upstream source.
+UA-Extract CLI tool for updating regex and fixture files from an upstream source.
 
-This script provides a command-line interface to fetch and update regex files
+This script provides a command-line interface to fetch and update regex and fixture files
 from a specified Git repository (default: matomo-org/device-detector) using
 either Git cloning or GitHub API methods. It supports sparse checkouts and
 optional cleanup of existing files.
@@ -10,11 +10,15 @@ optional cleanup of existing files.
 
 import argparse
 import sys
-import os
 from pathlib import Path
 from .update_regex import Regexes, UpdateMethod
 
 ROOT_PATH = Path(__file__).parent.resolve()
+
+
+def message_callback(message: str):
+    """Callback function to print progress messages."""
+    print(message, file=sys.stderr)
 
 
 def main():
@@ -22,7 +26,7 @@ def main():
     Main function to handle command-line arguments and execute the appropriate command.
 
     Supports two commands:
-    - update_regexes: Updates regex files from an upstream source.
+    - update_regexes: Updates regex and fixture files from an upstream source.
     - help: Displays help for all commands or a specific command.
 
     Exits with appropriate status codes on errors.
@@ -30,15 +34,15 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="ua_extract",
-        description="UA-Extract CLI for updating regex files from an upstream source",
+        description="UA-Extract CLI for updating regex and fixture files from an upstream source",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     update_parser = subparsers.add_parser(
         "update_regexes",
-        help="Update regex files from upstream source",
-        description="Update regex files from upstream source"
+        help="Update regex and fixture files from upstream source",
+        description="Update regex and fixture files from upstream source"
     )
 
     update_parser.add_argument(
@@ -67,14 +71,53 @@ def main():
         "-d",
         "--dir",
         default="regexes",
-        help="Sparse directory in the repository to fetch"
+        help="Sparse directory in the repository for regex files"
+    )
+
+    update_parser.add_argument(
+        "--fixtures-dir",
+        default="Tests/fixtures",
+        help="Sparse directory in the repository for general fixtures"
+    )
+
+    update_parser.add_argument(
+        "--fixtures-path",
+        default=ROOT_PATH / "tests" / "fixtures" / "upstream",
+        type=Path,
+        help="Destination path for general fixture files"
+    )
+
+    update_parser.add_argument(
+        "--client-dir",
+        default="Tests/Parser/Client/fixtures",
+        help="Sparse directory in the repository for client fixtures"
+    )
+
+    update_parser.add_argument(
+        "--client-path",
+        default=ROOT_PATH / "tests" / "parser" / "fixtures" / "upstream" / "client",
+        type=Path,
+        help="Destination path for client fixture files"
+    )
+
+    update_parser.add_argument(
+        "--device-dir",
+        default="Tests/Parser/Device/fixtures",
+        help="Sparse directory in the repository for device fixtures"
+    )
+
+    update_parser.add_argument(
+        "--device-path",
+        default=ROOT_PATH / "tests" / "parser" / "fixtures" / "upstream" / "device",
+        type=Path,
+        help="Destination path for device fixture files"
     )
 
     update_parser.add_argument(
         "-c",
         "--cleanup",
         action="store_true",
-        help="Delete existing regex files before updating"
+        help="Delete existing regex and fixture files before updating"
     )
 
     update_parser.add_argument(
@@ -88,7 +131,7 @@ def main():
     update_parser.add_argument(
         "-g",
         "--github-token",
-        default=os.getenv("GITHUB_TOKEN"),
+        default=None,
         help="GitHub personal access token for API method (default: from GITHUB_TOKEN env var)"
     )
 
@@ -109,35 +152,30 @@ def main():
     if args.command == "help":
         if args.command_name:
             command = subparsers._name_parser_map.get(args.command_name)
-
             if command:
                 command.print_help()
-
             else:
                 print(f"Error: Unknown command '{args.command_name}'", file=sys.stderr)
                 parser.print_help()
                 sys.exit(1)
-
         else:
             print("Available commands:")
-
             for name, subparser in subparsers._name_parser_map.items():
                 print(f"  {name}: {subparser.description or 'No description available'}")
-
             print("\nUse 'ua_extract <command> --help' for detailed help on a specific command.")
             sys.exit(0)
 
     elif args.command == "update_regexes":
         try:
-            if not args.path.exists():
-                args.path.mkdir(parents=True, exist_ok=True)
+            for path in [args.path, args.fixtures_path, args.client_path, args.device_path]:
+                if not path.exists():
+                    path.mkdir(parents=True, exist_ok=True)
+                elif not path.is_dir():
+                    print(f"Error: '{path}' is not a directory", file=sys.stderr)
+                    sys.exit(1)
 
-            elif not args.path.is_dir():
-                print(f"Error: '{args.path}' is not a directory", file=sys.stderr)
-                sys.exit(1)
-
-        except PermissionError:
-            print(f"Error: No permission to create or access '{args.path}'", file=sys.stderr)
+        except PermissionError as e:
+            print(f"Error: No permission to create or access path: {e}", file=sys.stderr)
             sys.exit(1)
 
         if not args.repo.startswith(("https://", "http://", "git@")):
@@ -150,11 +188,18 @@ def main():
                 repo_url=args.repo,
                 branch=args.branch,
                 sparse_dir=args.dir,
+                sparse_fixtures_dir=args.fixtures_dir,
+                fixtures_upstream_path=str(args.fixtures_path),
+                sparse_client_dir=args.client_dir,
+                client_upstream_dir=str(args.client_path),
+                sparse_device_dir=args.device_dir,
+                device_upstream_dir=str(args.device_path),
                 cleanup=args.cleanup,
-                github_token=args.github_token
+                github_token=args.github_token,
+                message_callback=message_callback
             )
             regexes.update_regexes(method=args.method)
-            print(f"Successfully updated regex files in '{args.path}'")
+            print(f"Successfully updated regex and fixture files")
 
         except ValueError as e:
             print(f"Error: {e}", file=sys.stderr)
