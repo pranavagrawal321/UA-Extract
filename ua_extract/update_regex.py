@@ -14,9 +14,6 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-logger = logging.getLogger(__name__)
-
-
 class UpdateMethod(Enum):
     GIT = "git"
     API = "api"
@@ -71,7 +68,7 @@ class Regexes:
 
 @register(UpdateMethod.GIT)
 def _update_with_git(self: Regexes):
-    logger.info("[+] Updating regexes using Git...")
+    print("[+] Updating regexes using Git...")
     try:
         with tempfile.TemporaryDirectory() as temp_dir, Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
@@ -119,11 +116,11 @@ def _update_with_git(self: Regexes):
             self._touch_init_file()
             progress.advance(task)
 
-        logger.info("Regexes updated successfully via Git")
+        print("Regexes updated successfully via Git")
     except subprocess.CalledProcessError:
-        logger.error("Git operation failed")
+        print("Git operation failed")
     except Exception as e:
-        logger.exception(f"[✗] Unexpected error during Git update: {e}")
+        print(f"[✗] Unexpected error during Git update: {e}")
 
 
 def _normalize_github_url(github_url: str):
@@ -159,7 +156,7 @@ async def _get_contents(content_url, token=None):
             if response.status == 403:
                 remaining = response.headers.get("X-RateLimit-Remaining", "0")
                 reset_time = response.headers.get("X-RateLimit-Reset")
-                logger.warning(f"Rate limit reached. Remaining: {remaining}. Reset at: {reset_time}")
+                print(f"Rate limit reached. Remaining: {remaining}. Reset at: {reset_time}")
                 raise RuntimeError("GitHub API rate limit exceeded")
 
             if response.ok:
@@ -247,7 +244,7 @@ async def _download_from_github_api(github_url, output_dir=None, token=None):
 
 @register(UpdateMethod.API)
 def _update_with_api(self: Regexes):
-    logger.info("[+] Updating regexes using GitHub API...")
+    print("[+] Updating regexes using GitHub API...")
     try:
         self._prepare_upstream_dir()
         asyncio.run(_download_from_github_api(
@@ -256,6 +253,6 @@ def _update_with_api(self: Regexes):
             token=self.github_token
         ))
         self._touch_init_file()
-        logger.info("Regexes updated successfully via API")
+        print("Regexes updated successfully via API")
     except Exception as e:
-        logger.exception(f"[✗] Unexpected error during API update: {e}")
+        print(f"[✗] Unexpected error during API update: {e}")
