@@ -178,17 +178,24 @@ def _update_with_git(self: Regexes):
                     self._notify(f"Expected directory {src_dir} not found in repository")
                     raise FileNotFoundError(f"Expected directory {src_dir} not found in repository")
 
-                if self.cleanup and os.path.exists(dst_dir):
-                    self._backup_directory(dst_dir)
-                    shutil.rmtree(dst_dir)
-                os.makedirs(dst_dir, exist_ok=True)
+                if self.cleanup:
+                    if dst_dir == self.upstream_path:
+                        self._backup_directory(dst_dir)
+                        shutil.rmtree(dst_dir)
+                        os.makedirs(dst_dir, exist_ok=True)
+                    else:
+                        os.makedirs(dst_dir, exist_ok=True)
 
                 for item in os.listdir(src_dir):
                     s = os.path.join(src_dir, item)
                     d = os.path.join(dst_dir, item)
+
                     if os.path.isdir(s):
+                        if os.path.exists(d):
+                            shutil.rmtree(d)
                         shutil.copytree(s, d)
                     else:
+                        os.makedirs(os.path.dirname(d), exist_ok=True)
                         shutil.copy2(s, d)
             progress.advance(task, 3)
 
