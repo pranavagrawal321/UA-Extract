@@ -5888,15 +5888,27 @@
     version: "12"
     platform: ""
   client:
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-33.yml
     type: mobile app
     name: HeyTapBrowser
     version: 40.8.5.1
+=======
+    type: browser
+    name: HeyTapBrowser
+    version: 40.8.5.1
+    engine: Blink
+    engine_version: 90.0.4430.61
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-33.yml
   device:
     type: smartphone
     brand: OPPO
     model: Reno 8
   os_family: Android
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-33.yml
   browser_family: Unknown
+=======
+  browser_family: Chrome
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-33.yml
 -
   user_agent: Mozilla/5.0 (Linux; Android 12; VNE-LX1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36
   os:

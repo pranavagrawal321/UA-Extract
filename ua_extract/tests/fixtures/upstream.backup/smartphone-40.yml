@@ -5094,15 +5094,27 @@
     version: "14"
     platform: ""
   client:
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
     type: mobile app
     name: HeyTapBrowser
     version: 40.8.30.9
+=======
+    type: browser
+    name: HeyTapBrowser
+    version: 40.8.30.9
+    engine: Blink
+    engine_version: 90.0.4430.61
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
   device:
     type: smartphone
     brand: OPPO
     model: A3 5G
   os_family: Android
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
   browser_family: Unknown
+=======
+  browser_family: Chrome
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
 -
   user_agent: Mozilla/5.0 (Linux; U; Android 14; zh-CN; PJX110 Build/UKQ1.231108.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Quark/7.1.0.610 Mobile Safari/537.36
   os:
@@ -5470,15 +5482,27 @@
     version: "14"
     platform: ""
   client:
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
     type: mobile app
     name: HeyTapBrowser
     version: 40.8.34.3
+=======
+    type: browser
+    name: HeyTapBrowser
+    version: 40.8.34.3
+    engine: Blink
+    engine_version: 90.0.4430.61
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
   device:
     type: smartphone
     brand: Realme
     model: V60
   os_family: Android
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
   browser_family: Unknown
+=======
+  browser_family: Chrome
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
 -
   user_agent: Mozilla/5.0 (Linux; U; Android 14; zh-CN; 2407FRK8EC Build/UP1A.231005.007) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Quark/7.2.0.630 Mobile Safari/537.36
   os:
@@ -6187,15 +6211,27 @@
     version: "14"
     platform: ""
   client:
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
     type: mobile app
     name: HeyTapBrowser
     version: 40.8.30.9
+=======
+    type: browser
+    name: HeyTapBrowser
+    version: 40.8.30.9
+    engine: Blink
+    engine_version: 90.0.4430.61
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
   device:
     type: smartphone
     brand: OPPO
     model: A3x 5G
   os_family: Android
+<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-40.yml
   browser_family: Unknown
+=======
+  browser_family: Chrome
+>>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-40.yml
 -
   user_agent: Mozilla/5.0 (Linux; U; Android 14; V2409 Build/UP1A.231005.007_MOD1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.146 Mobile Safari/537.36 OPR/85.0.2254.74019
   os:

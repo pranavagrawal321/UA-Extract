@@ -321,6 +321,13 @@
 'com.getkeepsafe.browser': 'Keepsafe Browser'
 'com.hawk.android.browser': 'Hawk Turbo Browser'
 'com.zte.nubrowser': 'ZTE Browser'
+<<<<<<< HEAD:ua_extract/regexes/upstream.backup/client/hints/browsers.yml
 'com.cloaktp.browser': 'Privacy Pioneer Browser'
 'company.thebrowser.arc': 'Arc Search'
 'com.android.webview': 'Chrome Webview'
+=======
+'com.cloaktp.browser': 'Cloak Private Browser'
+'company.thebrowser.arc': 'Arc Search'
+'com.android.webview': 'Chrome Webview'
+'com.heytap.browser': 'HeyTapBrowser'
+>>>>>>> upstream/master:device_detector/regexes/upstream/client/hints/browsers.yml

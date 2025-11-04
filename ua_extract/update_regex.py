@@ -10,21 +10,33 @@ from urllib.parse import urlparse
 from pathlib import Path
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn, TransferSpeedColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeElapsedColumn,
+    TransferSpeedColumn,
+)
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+
 
 class UpdateMethod(Enum):
     GIT = "git"
     API = "api"
 
+
 _method_registry = {}
+
 
 def register(method: UpdateMethod):
     def decorator(func):
         _method_registry[method] = func
         return func
+
     return decorator
+
 
 class Regexes:
     """Manages updating regexes and fixtures from the Matomo Device Detector repository.
@@ -44,6 +56,7 @@ class Regexes:
         github_token (Optional[str]): GitHub token for API access.
         message_callback (Optional[callable]): Function to handle messages (default: None).
     """
+
     def __init__(
         self,
         upstream_path: str = os.path.join(ROOT_PATH, "regexes", "upstream"),
@@ -53,12 +66,16 @@ class Regexes:
         sparse_fixtures_dir: str = "Tests/fixtures",
         fixtures_upstream_path: str = os.path.join(ROOT_PATH, "tests", "fixtures", "upstream"),
         sparse_client_dir: str = "Tests/Parser/Client/fixtures",
-        client_upstream_dir: str = os.path.join(ROOT_PATH, "tests", "parser", "fixtures", "upstream", "client"),
+        client_upstream_dir: str = os.path.join(
+            ROOT_PATH, "tests", "parser", "fixtures", "upstream", "client"
+        ),
         sparse_device_dir: str = "Tests/Parser/Device/fixtures",
-        device_upstream_dir: str = os.path.join(ROOT_PATH, "tests", "parser", "fixtures", "upstream", "device"),
+        device_upstream_dir: str = os.path.join(
+            ROOT_PATH, "tests", "parser", "fixtures", "upstream", "device"
+        ),
         cleanup: bool = True,
         github_token: Optional[str] = None,
-        message_callback: Optional[callable] = None
+        message_callback: Optional[callable] = None,
     ):
         self.upstream_path = self._validate_path(upstream_path)
         self.repo_url = repo_url
@@ -119,7 +136,9 @@ class Regexes:
             method_enum = UpdateMethod(method.lower())
         except ValueError:
             self._notify(f"Invalid method: {method}. Allowed: {[m.value for m in UpdateMethod]}")
-            raise ValueError(f"Invalid method: {method}. Allowed: {[m.value for m in UpdateMethod]}")
+            raise ValueError(
+                f"Invalid method: {method}. Allowed: {[m.value for m in UpdateMethod]}"
+            )
 
         func = _method_registry.get(method_enum)
         if not func:
@@ -127,43 +146,65 @@ class Regexes:
             raise ValueError(f"No update function registered for method: {method_enum}")
         func(self)
 
+
 @register(UpdateMethod.GIT)
 def _update_with_git(self: Regexes):
     """Update regexes using Git sparse checkout."""
     self._notify("[+] Updating regexes using Git...")
     try:
-        with tempfile.TemporaryDirectory() as temp_dir, Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
-            BarColumn(), "[progress.percentage]{task.percentage:>3.1f}%",
-            TimeElapsedColumn()
-        ) as progress:
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                "[progress.percentage]{task.percentage:>3.1f}%",
+                TimeElapsedColumn(),
+            ) as progress,
+        ):
             steps = [
                 ("Cloning repository...", 4),
                 ("Setting sparse-checkout...", 1),
                 ("Copying files...", 3),
-                ("Finalizing...", 1)
+                ("Finalizing...", 1),
             ]
             task = progress.add_task("[cyan]Git Update", total=sum(s[1] for s in steps))
 
-            subprocess.run([
-                "git", "clone",
-                "--depth", "1",
-                "--filter=blob:none",
-                "--sparse",
-                "--branch", self.branch,
-                self.repo_url,
-                temp_dir
-            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+            subprocess.run(
+                [
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    "--filter=blob:none",
+                    "--sparse",
+                    "--branch",
+                    self.branch,
+                    self.repo_url,
+                    temp_dir,
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
             progress.advance(task, 4)
 
-            subprocess.run([
-                "git", "-C", temp_dir,
-                "sparse-checkout", "set",
-                self.sparse_dir,
-                self.sparse_fixtures_dir,
-                self.sparse_client_dir,
-                self.sparse_device_dir
-            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    temp_dir,
+                    "sparse-checkout",
+                    "set",
+                    self.sparse_dir,
+                    self.sparse_fixtures_dir,
+                    self.sparse_client_dir,
+                    self.sparse_device_dir,
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
             progress.advance(task, 1)
 
             mapping = [
@@ -211,6 +252,7 @@ def _update_with_git(self: Regexes):
         self._notify(f"[✗] Unexpected error during Git update: {e}")
         raise
 
+
 def _normalize_github_url(github_url: str):
     """Normalize and validate a GitHub URL."""
     github_url = github_url.strip()
@@ -235,6 +277,7 @@ def _normalize_github_url(github_url: str):
         "target_path": target_path,
     }
 
+
 async def _check_rate_limit(session, token):
     """Check GitHub API rate limit."""
     headers = {"Authorization": f"token {token}"} if token else {}
@@ -243,8 +286,11 @@ async def _check_rate_limit(session, token):
         remaining = data["rate"]["remaining"]
         if remaining < 10:
             reset_time = data["rate"]["reset"]
-            reset_time = datetime.utcfromtimestamp(int(reset_time)).strftime('%Y-%m-%d %H:%M:%S UTC')
+            reset_time = datetime.utcfromtimestamp(int(reset_time)).strftime(
+                '%Y-%m-%d %H:%M:%S UTC'
+            )
             raise RuntimeError(f"Low rate limit remaining: {remaining}. Reset at: {reset_time}")
+
 
 async def _get_contents(self, content_url, token=None):
     """Fetch contents from GitHub API."""
@@ -258,18 +304,22 @@ async def _get_contents(self, content_url, token=None):
                 remaining = response.headers.get("X-RateLimit-Remaining", "0")
                 reset_time = response.headers.get("X-RateLimit-Reset")
                 if reset_time:
-                    reset_time = datetime.utcfromtimestamp(int(reset_time)).strftime('%Y-%m-%d %H:%M:%S UTC')
+                    reset_time = datetime.utcfromtimestamp(int(reset_time)).strftime(
+                        '%Y-%m-%d %H:%M:%S UTC'
+                    )
                 self._notify(f"Rate limit reached. Remaining: {remaining}. Reset at: {reset_time}")
                 raise RuntimeError("GitHub API rate limit exceeded")
 
             if response.ok:
                 response_data = await response.json()
                 if isinstance(response_data, dict):
-                    return [{
-                        "name": response_data.get("name"),
-                        "download_url": response_data.get("download_url"),
-                        "content_blob": response_data.get("content"),
-                    }]
+                    return [
+                        {
+                            "name": response_data.get("name"),
+                            "download_url": response_data.get("download_url"),
+                            "content_blob": response_data.get("content"),
+                        }
+                    ]
 
                 for resp in response_data:
                     name = resp.get("name")
@@ -285,11 +335,12 @@ async def _get_contents(self, content_url, token=None):
                         download_urls.append({"name": name, "download_url": download_url})
     return download_urls
 
+
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=1, max=10),
     retry=retry_if_exception_type(Exception),
-    reraise=True
+    reraise=True,
 )
 async def _download_content(download_url, output_file, token=None):
     """Download a file from a URL."""
@@ -301,12 +352,16 @@ async def _download_content(download_url, output_file, token=None):
             with open(output_file, "wb") as f:
                 f.write(content)
 
+
 async def _download_with_progress(self, download_url, content_filename, progress, task, token=None):
     """Download a file with progress tracking."""
     await _download_content(download_url, content_filename, token)
     progress.advance(task)
 
-async def _download_from_github_api(self, github_url, output_dir=None, token=None, max_concurrent=10):
+
+async def _download_from_github_api(
+    self, github_url, output_dir=None, token=None, max_concurrent=10
+):
     """Download files from GitHub API with concurrency limit."""
     repo_data = _normalize_github_url(github_url)
     owner = repo_data["owner"]
@@ -321,9 +376,12 @@ async def _download_from_github_api(self, github_url, output_dir=None, token=Non
     os.makedirs(root_target_path, exist_ok=True)
 
     with Progress(
-        SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
-        BarColumn(), "[progress.percentage]{task.percentage:>3.1f}%",
-        TransferSpeedColumn(), TimeElapsedColumn()
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        "[progress.percentage]{task.percentage:>3.1f}%",
+        TransferSpeedColumn(),
+        TimeElapsedColumn(),
     ) as progress:
         tasks = []
         task = progress.add_task("[cyan]Api Update", total=len(contents))
@@ -348,16 +406,29 @@ async def _download_from_github_api(self, github_url, output_dir=None, token=Non
 
         await asyncio.gather(*tasks)
 
+
 @register(UpdateMethod.API)
 def _update_with_api(self: Regexes):
     """Update regexes using GitHub API."""
     self._notify("[+] Updating regexes using GitHub API...")
     try:
         tasks = [
-            ("https://github.com/matomo-org/device-detector/tree/master/regexes", self.upstream_path),
-            ("https://github.com/matomo-org/device-detector/tree/master/Tests/fixtures", self.fixtures_upstream_path),
-            ("https://github.com/matomo-org/device-detector/tree/master/Tests/Parser/Client/fixtures", self.client_upstream_dir),
-            ("https://github.com/matomo-org/device-detector/tree/master/Tests/Parser/Device/fixtures", self.device_upstream_dir),
+            (
+                "https://github.com/matomo-org/device-detector/tree/master/regexes",
+                self.upstream_path,
+            ),
+            (
+                "https://github.com/matomo-org/device-detector/tree/master/Tests/fixtures",
+                self.fixtures_upstream_path,
+            ),
+            (
+                "https://github.com/matomo-org/device-detector/tree/master/Tests/Parser/Client/fixtures",
+                self.client_upstream_dir,
+            ),
+            (
+                "https://github.com/matomo-org/device-detector/tree/master/Tests/Parser/Device/fixtures",
+                self.device_upstream_dir,
+            ),
         ]
 
         loop = asyncio.get_event_loop()

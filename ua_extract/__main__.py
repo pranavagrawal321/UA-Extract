@@ -35,14 +35,14 @@ def main():
     parser = argparse.ArgumentParser(
         prog="ua_extract",
         description="UA-Extract CLI for updating regex and fixture files from an upstream source",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     update_parser = subparsers.add_parser(
         "update_regexes",
         help="Update regex and fixture files from upstream source",
-        description="Update regex and fixture files from upstream source"
+        description="Update regex and fixture files from upstream source",
     )
 
     update_parser.add_argument(
@@ -50,74 +50,66 @@ def main():
         "--path",
         default=ROOT_PATH / "regexes" / "upstream",
         type=Path,
-        help="Destination path for regex files"
+        help="Destination path for regex files",
     )
 
     update_parser.add_argument(
         "-r",
         "--repo",
         default="https://github.com/matomo-org/device-detector.git",
-        help="Git repository URL"
+        help="Git repository URL",
     )
 
-    update_parser.add_argument(
-        "-b",
-        "--branch",
-        default="master",
-        help="Git branch name"
-    )
+    update_parser.add_argument("-b", "--branch", default="master", help="Git branch name")
 
     update_parser.add_argument(
-        "-d",
-        "--dir",
-        default="regexes",
-        help="Sparse directory in the repository for regex files"
+        "-d", "--dir", default="regexes", help="Sparse directory in the repository for regex files"
     )
 
     update_parser.add_argument(
         "--fixtures-dir",
         default="Tests/fixtures",
-        help="Sparse directory in the repository for general fixtures"
+        help="Sparse directory in the repository for general fixtures",
     )
 
     update_parser.add_argument(
         "--fixtures-path",
         default=ROOT_PATH / "tests" / "fixtures" / "upstream",
         type=Path,
-        help="Destination path for general fixture files"
+        help="Destination path for general fixture files",
     )
 
     update_parser.add_argument(
         "--client-dir",
         default="Tests/Parser/Client/fixtures",
-        help="Sparse directory in the repository for client fixtures"
+        help="Sparse directory in the repository for client fixtures",
     )
 
     update_parser.add_argument(
         "--client-path",
         default=ROOT_PATH / "tests" / "parser" / "fixtures" / "upstream" / "client",
         type=Path,
-        help="Destination path for client fixture files"
+        help="Destination path for client fixture files",
     )
 
     update_parser.add_argument(
         "--device-dir",
         default="Tests/Parser/Device/fixtures",
-        help="Sparse directory in the repository for device fixtures"
+        help="Sparse directory in the repository for device fixtures",
     )
 
     update_parser.add_argument(
         "--device-path",
         default=ROOT_PATH / "tests" / "parser" / "fixtures" / "upstream" / "device",
         type=Path,
-        help="Destination path for device fixture files"
+        help="Destination path for device fixture files",
     )
 
     update_parser.add_argument(
         "-c",
         "--cleanup",
         action="store_true",
-        help="Delete existing regex and fixture files before updating"
+        help="Delete existing regex and fixture files before updating",
     )
 
     update_parser.add_argument(
@@ -125,26 +117,26 @@ def main():
         "--method",
         choices=[method.value for method in UpdateMethod],
         default="git",
-        help="Update method: 'git' (clone via Git) or 'api' (download via GitHub API)"
+        help="Update method: 'git' (clone via Git) or 'api' (download via GitHub API)",
     )
 
     update_parser.add_argument(
         "-g",
         "--github-token",
         default=None,
-        help="GitHub personal access token for API method (default: from GITHUB_TOKEN env var)"
+        help="GitHub personal access token for API method (default: from GITHUB_TOKEN env var)",
     )
 
     help_parser = subparsers.add_parser(
         "help",
         help="Show detailed help for all available commands",
-        description="Show detailed help for all available commands"
+        description="Show detailed help for all available commands",
     )
 
     help_parser.add_argument(
         "command_name",
         nargs="?",
-        help="Optional: specify a command to show its detailed help (e.g., 'update_regexes')"
+        help="Optional: specify a command to show its detailed help (e.g., 'update_regexes')",
     )
 
     args = parser.parse_args()
@@ -196,7 +188,7 @@ def main():
                 device_upstream_dir=str(args.device_path),
                 cleanup=args.cleanup,
                 github_token=args.github_token,
-                message_callback=message_callback
+                message_callback=message_callback,
             )
             regexes.update_regexes(method=args.method)
             print(f"Successfully updated regex and fixture files")

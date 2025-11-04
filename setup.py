@@ -4,6 +4,7 @@ import os
 import re
 from setuptools import setup, find_packages
 
+
 def get_version():
     with open('ua_extract/__init__.py', 'r') as f:
         for line in f:
@@ -12,13 +13,11 @@ def get_version():
                 return match.group(1)
     raise ImportError("Can't find version string in ua_extract/__init__.py")
 
+
 def parse_requirements(filename):
     with open(filename, 'r') as f:
-        return [
-            line.strip()
-            for line in f
-            if line.strip() and not line.startswith('#')
-        ]
+        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -52,10 +51,8 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
@@ -63,6 +60,6 @@ setup(
     project_urls={
         "Source": "https://github.com/pranavagrawal321/ua_extract",
         "Issues": "https://github.com/pranavagrawal321/ua_extract/issues",
-        "Documentation": "https://github.com/pranavagrawal321/ua_extract#readme"
-    }
+        "Documentation": "https://github.com/pranavagrawal321/ua_extract#readme",
+    },
 )

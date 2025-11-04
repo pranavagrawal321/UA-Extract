@@ -2,6 +2,7 @@ from collections import Counter
 from hashlib import blake2s
 from string import punctuation
 from urllib.parse import unquote
+from .enums import AppType
 from .lazy_regex import RegexLazy, RegexLazyIgnore
 
 PUNC_SPACE = f'{punctuation} '
@@ -11,13 +12,13 @@ number_table = str.maketrans({p: '' for p in '0123456789'})
 REPEATED_CHARACTERS = RegexLazy(r'(.)(\1{11,})')
 
 # Safari often appends a meaningless alphanumeric string enclosed in parens.
-# Otherwise the UAs are identical so strip that suffix
+# Otherwise, the UAs are identical so strip that suffix
 # Mozilla/5.0 (iPhone; CPU iPhone OS 12_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16C101 (5836419392)  # noqa
 # Mozilla/5.0 (iPhone; CPU iPhone OS 12_1_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16D57 baidumap_IPHO (10793838272)  # noqa
 STRIP_NUM_SUFFIX = RegexLazyIgnore(r'(\([0-9]+\))$')
 COMMON_BIGRAMS = RegexLazyIgnore(
-    r'th|he|in|er|an|re|on|at|en|nd|ti|es|or|te|of|ed|is|it|al|ar|st|to|nt|ng|se|'
-    r'ha|as|ou|io|le|ve|co|me|de|hi|ri|ro|ic|ne|ea|ra|ce|li|ch|ll|be|ma|si|om|ur'
+    r'th|he|in|er|an|ar|re|on|at|en|nd|ti|es|or|te|of|ed|is|it|al|ar|st|to|nt|ng|se|'
+    r'ha|as|ou|io|le|ve|co|me|de|hi|ri|ro|ic|ne|ea|ee|oo|ra|ce|li|ch|ll|be|ma|si|om|ur'
 )
 ILLEGAL_BIGRAMS = RegexLazyIgnore(r'[a-z0-9](jq|qg|qk|qy|qz|wq|wz)')
 LEGAL_BIGRAMS = RegexLazyIgnore(
@@ -45,34 +46,50 @@ LEGAL_BIGRAMS = RegexLazyIgnore(
     '|gz|hz|iz|jz|kz|lz|mz|nz|oz|pz|rz|sz|tz|uz|vz|wz|xz|yz|zz|3d|2p)'
 )
 COMMON_TRIGRAMS = RegexLazyIgnore(
-    r'(the|and|ing|her|hat|his|tha|ere|for|ent|ion|ter|was|you|ith|ver|all|wit|thi|tio|p2p|'
-    r'app|api|bot|cam|cpu|lab|hue|rgb|sdk|web|oku|pad|vpn|zig|4x4|gun|sim|mp3|wma|mov|pic|vid|war)'
+    r'(the|and|ing|her|hat|his|tha|ere|for|lab|ent|ion|ter|was|you|ith|ver|all|wit|thi|tio|p2p|dev|'
+    r'ink|jet|ios|mac|win|dos|rss|med|fun|sun|fax|app|api|bot|cam|cpu|lab|hue|rgb|sdk|web|oku|pad|'
+    r'art|bea|boa|cat|law|mes|new|not|vpn|zig|4x4|gun|sim|mp3|wma|mov|pic|pix|vid|war|key|sho|syn|'
+    r'bit|boy|cli|dri|han|log|man|mot|rad|oil|sip|nom|gen|per|sig|tim|tun|wor)'
 )
 COMMON_QUADRIGRAMS = RegexLazyIgnore(
-    '(that|ther|with|tion|here|ould|ight|have|hich|whic|this|thin|they|atio|ever|from|ough|were|'
-    'hing|ment|droid|mobil|brows|load|micro|msdw|network|cloud|http|phone|tablet|wifi|window|page|'
-    'cart|wiki|mozilla|chrome|vivaldi|view|traf|rack|game|audio|truck|block|moat|book|sport|widget|'
-    'scan|connect|free|talk|school|tube|plus|tool|sheet|shop|kids)'
+    '(clou|ipod|ipad|that|ther|with|tion|here|ould|ight|have|hich|whic|this|thin|they|atio|ever|'
+    'from|ough|were|hing|ment|droid|mobil|brows|load|micro|msdw|network|cloud|http|phone|tablet|'
+    'wifi|window|page|cart|wiki|mozilla|chrome|vivaldi|view|traf|rack|game|audio|truck|block|moat|'
+    'book|sport|widget|scan|connect|free|talk|school|tube|plus|tool|sheet|shop|kids|sing|date|play|'
+    'client|girl|plan|proj|soft|tock|instal|linu|data|trav|stud|send|sale|phot|shar|wire|star|mail|'
+    'win3|win6)'
 )
 
 UUID_LIKE_NAME = RegexLazyIgnore(
     "^([0-9a-f]{8}(-[0-9a-f]{4}){2,}$)|"
     "^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$)"
 )
-SHORT_UUID = RegexLazyIgnore(r"^[\w\d]{8}-[\w\d]{4}$")
-
+# a_05D42541-648B-41DD-B11F-0CAF61F4CE19-660-0000004D54BA56F2
+# a_03E848FE-2BD9-4400-B87B-172C35D4A309-3121-00000B5202325FA0
+LONG_UUID = RegexLazyIgnore(r"^([\w\d]{10}-)+([\w\d]{4,5}-)+([\w\d]{12}-)([\w\d]{3,5}-)")
+SHORT_UUID = RegexLazyIgnore(r"^(\w{4,8}-)(\w{4,8}-)+(\w{4,12})$")
+TWO_SEGMENT_UUID = RegexLazyIgnore(r"^(\w{4,8}-)(\w{4,8})$")
+INTEGER = RegexLazyIgnore(r"\d")
 MIN_WORD_LENGTH = 7
 
 
-def ua_hash(user_agent):
+def ua_hash(user_agent: str, headers: dict | None = None) -> str:
     """
     Return short hash of User Agent string for
     memory-efficient cache key.
     """
-    return blake2s(user_agent.encode('utf-8')).hexdigest()[:9]
+    if headers:
+        try:
+            cache_key = f'{user_agent}{"-".join(sorted(headers.values()))}'
+        except TypeError:
+            cache_key = f'{user_agent}{headers}'
+    else:
+        cache_key = user_agent
+
+    return blake2s(cache_key.encode('utf-8')).hexdigest()
 
 
-def long_ua_no_punctuation(user_agent):
+def long_ua_no_punctuation(user_agent: str) -> bool:
     """
     UserAgent string is long and has no Space, Dot or Slash
     """
@@ -82,7 +99,7 @@ def long_ua_no_punctuation(user_agent):
     return punc_removed == user_agent
 
 
-def only_numerals_and_punctuation(user_agent):
+def only_numerals_and_punctuation(user_agent: str) -> bool:
     """
     Remove all punctuation. If only digits remain,
     don't bother saving, as nothing can be learned.
@@ -93,13 +110,13 @@ def only_numerals_and_punctuation(user_agent):
     return user_agent.translate(trans_tbl).isdigit()
 
 
-def mostly_numerals(user_agent):
+def mostly_numerals(user_agent: str) -> bool:
     """
     UserAgent string is mostly numeric, discard
     15B93
     """
     if not user_agent or ' ' in user_agent:
-        return
+        return False
 
     try:
         int(user_agent)
@@ -112,10 +129,10 @@ def mostly_numerals(user_agent):
         if not char.isnumeric():
             alphabetic_chars += 1
 
-    return alphabetic_chars / len(user_agent) < .33
+    return alphabetic_chars / len(user_agent) < 0.33
 
 
-def clean_ua(user_agent):
+def clean_ua(user_agent: str) -> str:
     """
     Normalize and decode User Agent string
     """
@@ -123,28 +140,26 @@ def clean_ua(user_agent):
     ua_lower = ua.lower()
 
     for prefix in (
-            # sprd-Galaxy-S4/1.0 Linux/2.6.35.7 Android/4.2.2 Release/10.14.2013 Browser/AppleWebKit533.1 (KHTML, like Gecko) Mozilla/5.0 Mobile  # noqa
-            # sprd-lingwin-U820S/1.0 Linux/2.6.35.7 Android/2.3.5 Release/10.15.2012 Browser/AppleWebKit533.1 (KHTML, like Gecko) Mozilla/5.0 Mobile  # noqa
-            'sprd-',
-
-            # null (FlipboardProxy/1.1; http://flipboard.com/browserproxy)
-            # (null) MyOperations/3.0.0/162 JDM/1.0
-            'null',
-            '(null)',
-
-            # AmazonWebView/Kindle for iOS/6.9.1.3/iOS/11.4.1/iPhone
-            # AmazonWebView/PrimeNow/5.7/iOS/11.4.1/iPhone
-            # AmazonWebView/Prime Video/5.71.1526.2/iOS/11.4.1/iPad
-            # AmazonWebView/SellingServicesOnAmazon/1.1.7/iPhone OS/11.3.1/iPhone
-            'amazonwebview',
+        # sprd-Galaxy-S4/1.0 Linux/2.6.35.7 Android/4.2.2 Release/10.14.2013 Browser/AppleWebKit533.1 (KHTML, like Gecko) Mozilla/5.0 Mobile  # noqa
+        # sprd-lingwin-U820S/1.0 Linux/2.6.35.7 Android/2.3.5 Release/10.15.2012 Browser/AppleWebKit533.1 (KHTML, like Gecko) Mozilla/5.0 Mobile  # noqa
+        'sprd-',
+        # null (FlipboardProxy/1.1; http://flipboard.com/browserproxy)
+        # (null) MyOperations/3.0.0/162 JDM/1.0
+        'null',
+        '(null)',
+        # AmazonWebView/Kindle for iOS/6.9.1.3/iOS/11.4.1/iPhone
+        # AmazonWebView/PrimeNow/5.7/iOS/11.4.1/iPhone
+        # AmazonWebView/Prime Video/5.71.1526.2/iOS/11.4.1/iPad
+        # AmazonWebView/SellingServicesOnAmazon/1.1.7/iPhone OS/11.3.1/iPhone
+        'amazonwebview',
     ):
         if ua_lower.startswith(prefix):
-            return ua[len(prefix):].strip()
+            return ua[len(prefix) :].strip()
 
     return ua
 
 
-def mostly_repeating_characters(user_agent):
+def mostly_repeating_characters(user_agent: str) -> bool:
     """
     User Agent string is mostly repeating characters
       - baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -154,10 +169,10 @@ def mostly_repeating_characters(user_agent):
         return False
 
     counts = Counter(user_agent)
-    return len(counts) / len(user_agent) < .15
+    return len(counts) / len(user_agent) < 0.15
 
 
-def random_alphanumeric_string(user_agent):
+def random_alphanumeric_string(user_agent: str) -> bool:
     """
     User Agent string is mostly generated names like:
 
@@ -167,12 +182,38 @@ def random_alphanumeric_string(user_agent):
     ziNICEarE9VlaPSkhDAyZrkZSpuEkIA
     vVNYZaiXO9Hd5zAi
     """
-    ua_length = len(user_agent)
+    if not user_agent:
+        return False
+
     user_agent = user_agent.lower()
 
-    # strings with spaces / punctuation are not handled
-    if (not user_agent or len(user_agent) <= MIN_WORD_LENGTH or not user_agent.isalnum()
-            or not user_agent.isascii() or good_ngram_matches(user_agent)):
+    # holav1_10593F39DD2DAEBC
+    # HKUM_XBw3S
+    # HKUM_fXHH8t9R
+    if user_agent.startswith(('holav1_', 'hkum_')):
+        return True
+
+    short_ua_len = 17
+    ua_length = len(user_agent)
+
+    # string should have a number of spaces & punctuation chars
+    punctuation_removed_diff = ua_length - len(user_agent.translate(trans_tbl))
+    if ua_length <= 20:
+        delta = 1
+    elif ua_length <= 35:
+        delta = 2
+    else:
+        delta = 3
+
+    large_diff = punctuation_removed_diff >= delta
+
+    # strings with adequate spaces / punctuation are not handled
+    if (
+        len(user_agent) <= MIN_WORD_LENGTH
+        or large_diff
+        or not user_agent.isascii()
+        or good_ngram_matches(user_agent)
+    ):
         return False
 
     vowels = 'aeiou'
@@ -187,7 +228,6 @@ def random_alphanumeric_string(user_agent):
     current_vowel_sequence = 0
 
     for char in user_agent:
-
         char_is_numerical = char.isnumeric()
 
         if char_is_numerical:
@@ -228,8 +268,8 @@ def random_alphanumeric_string(user_agent):
         longest_vowel_sequence,
     )
 
-    alphabetic_threshold = 4 if ua_length < 17 else 5
-    intermingled_integer_threshold = 2 if ua_length < 17 else 3
+    alphabetic_threshold = 4 if ua_length < short_ua_len else 5
+    intermingled_integer_threshold = 2 if ua_length < short_ua_len else 3
 
     gibberish = (
         longest_consonant_sequence >= alphabetic_threshold
@@ -237,25 +277,21 @@ def random_alphanumeric_string(user_agent):
         or intermingled_integers >= intermingled_integer_threshold
     )
 
-    if gibberish and ua_length < 17:
+    if gibberish and ua_length < short_ua_len:
         return ngram_analysis_gibberish(user_agent)
 
     return gibberish or ngram_analysis_gibberish(user_agent)
 
 
-def ngram_analysis_gibberish(user_agent):
+def ngram_analysis_gibberish(user_agent: str) -> bool:
     """
     Analyze legal ngrams to see if it's likely that UA is gibberish.
     """
     ua_length = len(user_agent)
-    # on shorter strings, strip leading / trailing integers to extract only the central name
-    # as the ints are like to be version or year values
-    if ua_length < 20:
-        user_agent = user_agent.strip('0123456789')
-        if len(user_agent) <= MIN_WORD_LENGTH:
-            return False
 
-    if ua_length <= 10:
+    if ua_length <= 6:
+        bigram_threshold = 3
+    elif ua_length <= 10:
         bigram_threshold = 4
     elif ua_length <= 15:
         bigram_threshold = 5
@@ -272,7 +308,7 @@ def ngram_analysis_gibberish(user_agent):
     return bigram_threshold > unique_bigrams
 
 
-def good_ngram_matches(user_agent):
+def good_ngram_matches(user_agent: str) -> bool:
     """
     User agent likely NOT gibberish due to containing
     quadrigrams or trigrams.
@@ -288,12 +324,12 @@ def good_ngram_matches(user_agent):
     if COMMON_QUADRIGRAMS.search(user_agent):
         return True
 
-    trigram_match = COMMON_TRIGRAMS.search(user_agent)
+    trigram_match = COMMON_TRIGRAMS.findall(user_agent)
+    ua_length = len(user_agent)
 
-    if len(user_agent) < 24 and trigram_match:
+    if ua_length < 24 and trigram_match or len(trigram_match) >= 2:
         return True
 
-    ua_length = len(user_agent)
     if ua_length <= 12:
         bigram_threshold = 2
     elif ua_length <= 24:
@@ -308,7 +344,7 @@ def good_ngram_matches(user_agent):
     return len(common_bigram_match) >= bigram_threshold
 
 
-def reset_sequences(current, longest):
+def reset_sequences(current: int, longest: int) -> tuple[int, int]:
     """
     Set longest sequence to current if it's shorter
     and reset current sequence to zero.
@@ -316,7 +352,7 @@ def reset_sequences(current, longest):
     return 0, current if current > longest else longest
 
 
-def uuid_like_name(value: str):
+def uuid_like_name(value: str) -> bool:
     """
     Ensure that name isn't UUID-like string, such as:
 
@@ -325,34 +361,41 @@ def uuid_like_name(value: str):
     5FAEB6ED-AE46-4A26-BA1B
     ea1866cb-c89a-6d5d-89b8-afdcdb715237
     """
-    if UUID_LIKE_NAME.search(value):
+    if not INTEGER.search(value):
+        return False
+
+    if UUID_LIKE_NAME.search(value) or LONG_UUID.search(value) or SHORT_UUID.search(value):
         return True
 
-    # Require integer, to match 738FAAEF-30CF but permit Waterman-9573  # noqa
-    if SHORT_UUID.search(value):
-        prefix, suffix = value.split('-')
-        return prefix.translate(number_table) != prefix
+    # all sections of the string must contain an integer
+    try:
+        for group in TWO_SEGMENT_UUID.search(value).groups():
+            if not INTEGER.search(group):
+                return False
+        return True
+    except Exception:
+        pass
 
     return False
 
 
-def calculate_dtype(app_name) -> str:
+def calculate_dtype(app_name: str) -> AppType:
     """
     For generic extractors try to return a more
     specific type we can be if reasonably sure.
     """
     app_name_lower = app_name.lower()
     for name, dtype in (
-        ('update', 'desktop app'),
-        ('mail', 'pim'),
-        ('api', 'library'),
-        ('sdk', 'library'),
-        ('webview', 'browser'),
+        ('update', AppType.DesktopApp),
+        ('mail', AppType.PIM),
+        ('api', AppType.Library),
+        ('sdk', AppType.Library),
+        ('webview', AppType.Browser),
     ):
         if name in app_name_lower:
             return dtype
 
-    return 'generic'
+    return AppType.Generic
 
 
 __all__ = (
