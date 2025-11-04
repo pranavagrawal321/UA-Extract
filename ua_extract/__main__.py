@@ -191,7 +191,7 @@ def main():
                 message_callback=message_callback,
             )
             regexes.update_regexes(method=args.method)
-            print(f"Successfully updated regex and fixture files")
+            print("Successfully updated regex and fixture files")
 
         except ValueError as e:
             print(f"Error: {e}", file=sys.stderr)
