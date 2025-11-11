@@ -127,6 +127,14 @@ def main():
         help="GitHub personal access token for API method (default: from GITHUB_TOKEN env var)",
     )
 
+    update_parser.add_argument(
+        "--no-progress",
+        nargs="?",
+        const="1",
+        default="",
+        help="Disable progress bar (use '--no-progress' or '--no-progress=1' to disable, '--no-progress=0' to enable)",
+    )
+
     help_parser = subparsers.add_parser(
         "help",
         help="Show detailed help for all available commands",
@@ -174,6 +182,13 @@ def main():
             print(f"Error: Invalid repository URL '{args.repo}'", file=sys.stderr)
             sys.exit(1)
 
+        if args.no_progress in ("1", "true", "True", "yes", "on"):
+            show_progress = False
+        elif args.no_progress in ("0", "false", "False", "no", "off"):
+            show_progress = True
+        else:
+            show_progress = False if args.no_progress != "" else True
+
         try:
             regexes = Regexes(
                 upstream_path=str(args.path),
@@ -190,7 +205,9 @@ def main():
                 github_token=args.github_token,
                 message_callback=message_callback,
             )
-            regexes.update_regexes(method=args.method)
+
+            regexes.update_regexes(method=args.method, show_progress=show_progress)
+
             print("Successfully updated regex and fixture files")
 
         except ValueError as e:

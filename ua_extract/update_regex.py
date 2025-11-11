@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 import tempfile
 import subprocess
+import contextlib
 from enum import Enum
 from typing import Optional
 from urllib.parse import urlparse
@@ -55,6 +56,7 @@ class Regexes:
         cleanup (bool): Whether to remove existing directories before updating.
         github_token (Optional[str]): GitHub token for API access.
         message_callback (Optional[callable]): Function to handle messages (default: None).
+        show_progress (Optional[bool]): Whether to show a progress bar (default: True).
     """
 
     def __init__(
@@ -76,6 +78,7 @@ class Regexes:
         cleanup: bool = True,
         github_token: Optional[str] = None,
         message_callback: Optional[callable] = None,
+        show_progress: bool = True,
     ):
         self.upstream_path = self._validate_path(upstream_path)
         self.repo_url = repo_url
@@ -90,6 +93,7 @@ class Regexes:
         self.cleanup = cleanup
         self.github_token = github_token
         self.message_callback = message_callback or (lambda x: None)
+        self.show_progress = show_progress
 
     def _notify(self, message: str):
         """Send a message to the callback function."""
@@ -121,16 +125,22 @@ class Regexes:
         """Create an empty __init__.py file."""
         open(os.path.join(self.upstream_path, "__init__.py"), "a").close()
 
-    def update_regexes(self, method: str = "git", dry_run: bool = False):
+    def update_regexes(
+        self, method: str = "git", dry_run: bool = False, show_progress: Optional[bool] = None
+    ):
         """Update regexes and fixtures using the specified method.
 
         Args:
             method (str): Update method ("git" or "api").
             dry_run (bool): Simulate the update without modifying the filesystem.
+            show_progress (bool | None): Temporarily override instance progress display.
         """
         if dry_run:
             self._notify(f"[Dry Run] Would update regexes using {method}")
             return
+
+        if show_progress is not None:
+            self.show_progress = show_progress
 
         try:
             method_enum = UpdateMethod(method.lower())
@@ -152,97 +162,109 @@ def _update_with_git(self: Regexes):
     """Update regexes using Git sparse checkout."""
     self._notify("[+] Updating regexes using Git...")
     try:
-        with (
-            tempfile.TemporaryDirectory() as temp_dir,
-            Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                "[progress.percentage]{task.percentage:>3.1f}%",
-                TimeElapsedColumn(),
-            ) as progress,
-        ):
-            steps = [
-                ("Cloning repository...", 4),
-                ("Setting sparse-checkout...", 1),
-                ("Copying files...", 3),
-                ("Finalizing...", 1),
-            ]
-            task = progress.add_task("[cyan]Git Update", total=sum(s[1] for s in steps))
-
-            subprocess.run(
-                [
-                    "git",
-                    "clone",
-                    "--depth",
-                    "1",
-                    "--filter=blob:none",
-                    "--sparse",
-                    "--branch",
-                    self.branch,
-                    self.repo_url,
-                    temp_dir,
-                ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
+        with tempfile.TemporaryDirectory() as temp_dir:
+            progress_context = (
+                Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    BarColumn(),
+                    "[progress.percentage]{task.percentage:>3.1f}%",
+                    TimeElapsedColumn(),
+                )
+                if self.show_progress
+                else contextlib.nullcontext()
             )
-            progress.advance(task, 4)
 
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    temp_dir,
-                    "sparse-checkout",
-                    "set",
-                    self.sparse_dir,
-                    self.sparse_fixtures_dir,
-                    self.sparse_client_dir,
-                    self.sparse_device_dir,
-                ],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-            )
-            progress.advance(task, 1)
+            with progress_context as progress:
+                task = None
+                if self.show_progress:
+                    steps = [
+                        ("Cloning repository...", 4),
+                        ("Setting sparse-checkout...", 1),
+                        ("Copying files...", 3),
+                        ("Finalizing...", 1),
+                    ]
+                    task = progress.add_task("[cyan]Git Update", total=sum(s[1] for s in steps))
 
-            mapping = [
-                (os.path.join(temp_dir, self.sparse_dir), self.upstream_path),
-                (os.path.join(temp_dir, self.sparse_fixtures_dir), self.fixtures_upstream_path),
-                (os.path.join(temp_dir, self.sparse_client_dir), self.client_upstream_dir),
-                (os.path.join(temp_dir, self.sparse_device_dir), self.device_upstream_dir),
-            ]
+                subprocess.run(
+                    [
+                        "git",
+                        "clone",
+                        "--depth",
+                        "1",
+                        "--filter=blob:none",
+                        "--sparse",
+                        "--branch",
+                        self.branch,
+                        self.repo_url,
+                        temp_dir,
+                    ],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                )
 
-            for src_dir, dst_dir in mapping:
-                if not os.path.exists(src_dir):
-                    self._notify(f"Expected directory {src_dir} not found in repository")
-                    raise FileNotFoundError(f"Expected directory {src_dir} not found in repository")
+                if self.show_progress:
+                    progress.advance(task, 4)
 
-                if self.cleanup:
-                    if dst_dir == self.upstream_path:
-                        self._backup_directory(dst_dir)
-                        shutil.rmtree(dst_dir)
-                        os.makedirs(dst_dir, exist_ok=True)
-                    else:
-                        os.makedirs(dst_dir, exist_ok=True)
+                subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        temp_dir,
+                        "sparse-checkout",
+                        "set",
+                        self.sparse_dir,
+                        self.sparse_fixtures_dir,
+                        self.sparse_client_dir,
+                        self.sparse_device_dir,
+                    ],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                )
+                if self.show_progress:
+                    progress.advance(task, 1)
 
-                for item in os.listdir(src_dir):
-                    s = os.path.join(src_dir, item)
-                    d = os.path.join(dst_dir, item)
+                mapping = [
+                    (os.path.join(temp_dir, self.sparse_dir), self.upstream_path),
+                    (os.path.join(temp_dir, self.sparse_fixtures_dir), self.fixtures_upstream_path),
+                    (os.path.join(temp_dir, self.sparse_client_dir), self.client_upstream_dir),
+                    (os.path.join(temp_dir, self.sparse_device_dir), self.device_upstream_dir),
+                ]
 
-                    if os.path.isdir(s):
-                        if os.path.exists(d):
-                            shutil.rmtree(d)
-                        shutil.copytree(s, d)
-                    else:
-                        os.makedirs(os.path.dirname(d), exist_ok=True)
-                        shutil.copy2(s, d)
-            progress.advance(task, 3)
+                for src_dir, dst_dir in mapping:
+                    if not os.path.exists(src_dir):
+                        self._notify(f"Expected directory {src_dir} not found in repository")
+                        raise FileNotFoundError(
+                            f"Expected directory {src_dir} not found in repository"
+                        )
 
-            for _, dst_dir in mapping:
-                open(os.path.join(dst_dir, "__init__.py"), "a").close()
-            progress.advance(task, 1)
+                    if self.cleanup:
+                        if dst_dir == self.upstream_path:
+                            self._backup_directory(dst_dir)
+                            shutil.rmtree(dst_dir)
+                            os.makedirs(dst_dir, exist_ok=True)
+                        else:
+                            os.makedirs(dst_dir, exist_ok=True)
+
+                    for item in os.listdir(src_dir):
+                        s = os.path.join(src_dir, item)
+                        d = os.path.join(dst_dir, item)
+                        if os.path.isdir(s):
+                            if os.path.exists(d):
+                                shutil.rmtree(d)
+                            shutil.copytree(s, d)
+                        else:
+                            os.makedirs(os.path.dirname(d), exist_ok=True)
+                            shutil.copy2(s, d)
+                if self.show_progress:
+                    progress.advance(task, 3)
+
+                for _, dst_dir in mapping:
+                    open(os.path.join(dst_dir, "__init__.py"), "a").close()
+                if self.show_progress:
+                    progress.advance(task, 1)
 
         self._notify("Regexes updated successfully via Git")
     except subprocess.CalledProcessError as e:
@@ -343,7 +365,6 @@ async def _get_contents(self, content_url, token=None):
     reraise=True,
 )
 async def _download_content(download_url, output_file, token=None):
-    """Download a file from a URL."""
     headers = {"Authorization": f"token {token}"} if token else {}
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(download_url) as response:
@@ -356,7 +377,8 @@ async def _download_content(download_url, output_file, token=None):
 async def _download_with_progress(self, download_url, content_filename, progress, task, token=None):
     """Download a file with progress tracking."""
     await _download_content(download_url, content_filename, token)
-    progress.advance(task)
+    if self.show_progress and progress:
+        progress.advance(task)
 
 
 async def _download_from_github_api(
@@ -367,30 +389,37 @@ async def _download_from_github_api(
     owner = repo_data["owner"]
     repo = repo_data["repo"]
     branch = repo_data["branch"]
-    root_target_path = output_dir
     target_path = repo_data["target_path"]
 
     content_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{target_path}?ref={branch}"
     contents = await _get_contents(self, content_url, token)
 
-    os.makedirs(root_target_path, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        "[progress.percentage]{task.percentage:>3.1f}%",
-        TransferSpeedColumn(),
-        TimeElapsedColumn(),
-    ) as progress:
-        tasks = []
-        task = progress.add_task("[cyan]Api Update", total=len(contents))
+    progress_context = (
+        Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            "[progress.percentage]{task.percentage:>3.1f}%",
+            TransferSpeedColumn(),
+            TimeElapsedColumn(),
+        )
+        if self.show_progress
+        else contextlib.nullcontext()
+    )
+
+    with progress_context as progress:
+        task = None
+        if self.show_progress:
+            task = progress.add_task("[cyan]Api Update", total=len(contents))
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def _bounded_download(download_url, filename, progress, task, token):
             async with semaphore:
                 await _download_with_progress(self, download_url, filename, progress, task, token)
 
+        tasks = []
         for content in contents:
             name = content.get("name")
             download_url = content.get("download_url")
@@ -398,8 +427,8 @@ async def _download_from_github_api(
                 continue
 
             parent = os.path.dirname(name)
-            os.makedirs(os.path.join(root_target_path, parent), exist_ok=True)
-            filename = os.path.join(root_target_path, name)
+            os.makedirs(os.path.join(output_dir, parent), exist_ok=True)
+            filename = os.path.join(output_dir, name)
 
             coro = _bounded_download(download_url, filename, progress, task, token)
             tasks.append(asyncio.create_task(coro))

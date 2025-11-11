@@ -1,3 +1,5 @@
+A Python user-agent parser & device detector powered by Matomo’s regex database — accurate, updatable, and production-ready.
+
 [![PyPI Downloads](https://static.pepy.tech/badge/ua-extract)](https://pepy.tech/projects/ua-extract)
 [![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/month)](https://pepy.tech/projects/ua-extract)[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/week)](https://pepy.tech/projects/ua-extract)
 
@@ -54,7 +56,7 @@ Regexes(
     repo_url="https://github.com/matomo-org/device-detector.git",
     branch="dev",
     github_token="your_token_here"
-).update_regexes(method="api")
+).update_regexes(method="api", show_progress=True)
 
 # Dry run to simulate update without modifying files
 Regexes().update_regexes(method="api", dry_run=True)
@@ -84,6 +86,7 @@ The `update_regexes` method accepts the following arguments:
 
 - `method` (str, default: `"git"`): Update method (`"git"` for cloning via Git, `"api"` for downloading via GitHub API).
 - `dry_run` (bool, default: `False`): If `True`, simulates the update without modifying the filesystem.
+- `show_progress` (bool, default: `True`) If `True`, shows a progress bar while updating regex
 
 ##### Update Methods and Use Cases
 
@@ -157,6 +160,7 @@ The `update_regexes` command supports the following options:
 - `-m, --method` (default: `git`): Update method (`git` or `api`).
 - `-g, --github-token` (default: none): GitHub personal access token for API method.
 - `--dry-run` (default: disabled): Simulate update without modifying files.
+- `--no-progress` (default: 0): Shows the progress bar
 
 ##### Example Commands
 
@@ -175,6 +179,10 @@ ua_extract update_regexes --method api --dry-run
 
 # Update from a specific branch
 ua_extract update_regexes --branch dev
+
+# Remove progress bar
+ua_extract update_regexes --no-progress
+ua_extract update_regexes --no-progress=1
 ```
 
 ##### View CLI Help
@@ -241,6 +249,18 @@ print(device.device_type())         # >>> smartphone
 ##### App Information in Mobile Browser User Agents
 
 Some mobile browser user agents include app information, as shown in the `DeviceDetector` example.
+
+## Testing
+
+```bash
+# Test Cases. Run entire suite by:
+
+python -m unittest
+
+# Run individual test class by:
+
+python -m ua_extract.tests.parser.test_bot
+```
 
 ## Updating from Matomo Project
 

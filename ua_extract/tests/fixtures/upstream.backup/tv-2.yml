@@ -3682,12 +3682,8 @@
   device:
     type: tv
     brand: Lime
-<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/tv-2.yml
-    model: Z2 Plus
-=======
     #Previosly "Z2 Plus", but changed to official name from https://tvbox.limehd.tv/z2
     model: TV Box Z2+
->>>>>>> upstream/master:device_detector/tests/fixtures/upstream/tv-2.yml
   os_family: Android
   browser_family: Chrome
 -

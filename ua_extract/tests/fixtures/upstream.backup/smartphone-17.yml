@@ -3197,11 +3197,8 @@
     type: browser
     name: HeyTapBrowser
     version: 45.7.1.9
-<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-17.yml
-=======
     engine: Blink
     engine_version: 70.0.3538.80
->>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-17.yml
   device:
     type: smartphone
     brand: Realme
@@ -3218,11 +3215,8 @@
     type: browser
     name: HeyTapBrowser
     version: 45.7.0.0
-<<<<<<< HEAD:ua_extract/tests/fixtures/upstream.backup/smartphone-17.yml
-=======
     engine: Blink
     engine_version: 70.0.3538.80
->>>>>>> upstream/master:device_detector/tests/fixtures/upstream/smartphone-17.yml
   device:
     type: smartphone
     brand: Realme
@@ -3387,8 +3381,8 @@
     engine_version: 78.0.3904.108
   device:
     type: smartphone
-    brand: Huawei
-    model: Honor 30I
+    brand: Honor
+    model: 30I
   os_family: Android
   browser_family: Opera
 -
@@ -4323,8 +4317,8 @@
     engine_version: 84.0.4147.135
   device:
     type: smartphone
-    brand: Huawei
-    model: Honor 30S
+    brand: Honor
+    model: 30S
   os_family: Android
   browser_family: Unknown
 -
@@ -6391,8 +6385,8 @@
     engine_version: 86.0.4240.185
   device:
     type: smartphone
-    brand: Huawei
-    model: Honor X10 Lite
+    brand: Honor
+    model: X10 Lite
   os_family: Android
   browser_family: Chrome
 -
