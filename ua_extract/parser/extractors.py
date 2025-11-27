@@ -1,6 +1,6 @@
 from ..lazy_regex import RegexLazyIgnore
 from ..yaml_loader import RegexLoader, app_pretty_names_types_data
-from device_detector.enums import AppType
+from ua_extract.enums import AppType
 
 APP_ID = RegexLazyIgnore(r'\b([a-z]{2,5}\.[\w\d\.\-]+)')
 GOOGLE_APPS = RegexLazyIgnore(r'(com\.google\.\w+)\.\w+$')

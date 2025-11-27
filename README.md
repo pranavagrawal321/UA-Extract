@@ -223,6 +223,7 @@ print(device.device_type())         # >>> smartphone
 print(device.secondary_client_name())     # >>> EtsyInc
 print(device.secondary_client_type())     # >>> generic
 print(device.secondary_client_version())  # >>> 5.22
+print(device.bot_name())
 ```
 
 ##### High-Performance Software Detection

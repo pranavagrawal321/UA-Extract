@@ -5,7 +5,7 @@ python3 -m unittest
 
 Run individual test class by:
 
-python3 -m unittest device_detector.tests.parser.test_bot
+python3 -m unittest ua_extract.tests.parser.test_bot
 """
 from enum import StrEnum
 from urllib.parse import unquote

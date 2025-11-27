@@ -427,6 +427,9 @@ class DeviceDetector:
     def is_bot(self) -> bool:
         return bool(self.all_details.get('bot'))
 
+    def bot_name(self) -> str:
+        return self.all_details.get('bot', {}).get('name', '')
+
     def is_television(self) -> bool:
         """
         Detect devices that are likely TVs.

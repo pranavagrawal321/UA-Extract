@@ -1,4 +1,4 @@
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 from .settings import *
 from .parser import *
 from .device_detector import *
