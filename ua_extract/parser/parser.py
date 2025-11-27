@@ -184,14 +184,14 @@ class Parser(RegexLoader):
         return False
 
     def set_version(self, version: str) -> str:
-        # return build_version(version, self.VERSION_TRUNCATION)
         return version
 
     def __str__(self) -> str:
         return self.name()
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.user_agent}, {self.ua_data}, {self.ua_spaceless})'
+        klass = self.__class__.__name__
+        return f'{klass}({self.user_agent!r}, {self.ua_data!r}, {self.ua_spaceless!r})'
 
 
 __all__ = [

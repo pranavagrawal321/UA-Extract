@@ -16,8 +16,8 @@
 -
   user_agent: AccuWeather/10.4.2 (com.yourcompany.TestWithCustomTabs; build:2; iOS 11.4.0) Alamofire/4.4.0
   client:
-    app_id: ''
-    pretty_name: ''
+    app_id: com.yourcompany.TestWithCustomTabs
+    pretty_name: 'AccuWeather: Weather Radar'
 -
   user_agent: com.apple.geod/1077.0.18 cfnetwork/720.5.7 darwin/14.5.0 (x86_64)
   client:
@@ -27,7 +27,7 @@
   user_agent: com.apple.weatherkitservice/147 cfnetwork/720.5.7 darwin/14.5.0 (x86_64)
   client:
     app_id: com.apple.weatherkitservice
-    pretty_name: Apple WeatherKit
+    pretty_name: Apple Weather
 -
   user_agent: com.apple.webkit.networking/8604.5.6.0.1 cfnetwork/894 darwin/17.4.0
   client:
@@ -37,7 +37,7 @@
   user_agent: 6h4hrtu5e3.com.avast.osx.secureline.avastsecurelinehelper/47777
   client:
     app_id: com.avast.osx.secureline.avastsecurelinehelper
-    pretty_name: Avast Osx Secureline Avastsecurelinehelper
+    pretty_name: Avast SecureLine VPN
 -
   user_agent: 5ZLLHQPJA8.com.wunderground.storm
   client:
@@ -112,7 +112,7 @@
   user_agent: com.apple.mobilenotes.SharingExtension/1127.50 CFNetwork/808.3 Darwin/16.3.0
   client:
     app_id: com.apple.mobilenotes.SharingExtension
-    pretty_name: Apple Mobile Notes
+    pretty_name: Apple Notes
 -
   user_agent: com.apple.mobilesafari
   client:
@@ -122,7 +122,7 @@
   user_agent: com.apple.mobileslideshow
   client:
     app_id: com.apple.mobileslideshow
-    pretty_name: Apple Mobile Slideshow
+    pretty_name: Apple Photos
 -
   user_agent: com.apple.MobileSMS
   client:

@@ -1,9 +1,5 @@
 - uaname: com.google.maps
   name: Google Maps
-- uaname: com.google.maps.messagesextension
-  name: Google Maps
-- uaname: com.google.maps.nearbytraffictodayextension
-  name: Google Maps
 - uaname: osmand
   suffix: maps
   name: OsmAnd Maps
@@ -26,7 +22,7 @@
 - uaname: com.google.android.apps.mapslite
   name: Google Maps Go
 - uaname: com.google.android.apps.searchlite
-  name: Google Go
+  name: Google Go Search
 - uaname: com.google.android.apps.maps
   name: Google Maps
 - uaname: com.google.earth
@@ -45,3 +41,23 @@
   name: GAIA GPS
 - uaname: truckmap
   name: Truck Map
+- uaname: azdev.citymapper
+  name: Citymapper - the Ultimate Transit App
+- uaname: app.TractorGPS
+  name: Tractor GPS
+- uaname: com.blocoware.speedometer
+  name: Speedometer 55
+- uaname: com.fleetcomplete.vision2
+  name: Unity VisionAI
+- uaname: com.garmin
+  suffixes: .connect.mobile|.explore
+  name: Garmin
+- uaname: connect for garmin
+  name: Connect for Garmin
+- uaname: com.rvlife.rvlife
+  name: RV Life - RV GPS & Campgrounds
+- uaname: com.waze
+  suffixes: .iphone
+  name: Waze Navigation & Live Traffic
+- uaname: com.chimani.parks.free
+  name: National Park Guides

@@ -1,6 +1,6 @@
 from typing import Self
 from .lazy_regex import RegexLazy
-from .enums import AppType, DeviceType
+from .enums import DeviceType
 
 from .parser import (
     BaseClientParser,
@@ -19,6 +19,7 @@ from .parser import (
     # ShellTv,
     MOBILE_DEVICE_TYPES,
     # Clients
+    AdobeCC,
     DictUA,
     Browser,
     FeedReader,
@@ -59,6 +60,7 @@ class DeviceDetector:
     ]
 
     CLIENT_PARSERS = (
+        AdobeCC,
         DictUA,
         FeedReader,
         Messaging,
@@ -94,6 +96,7 @@ class DeviceDetector:
         'client',
         'device',
         'model',
+        'user_agent_lower',
         'user_agent',
         'ua_hash',
         '_ua_spaceless',
@@ -125,7 +128,8 @@ class DeviceDetector:
         """
 
         # Holds the useragent that should be parsed
-        self.user_agent = clean_ua(user_agent)
+        self.user_agent_lower = user_agent.lower()
+        self.user_agent = clean_ua(user_agent, self.user_agent_lower)
         self.ua_hash = ua_hash(self.user_agent, headers)
         self._ua_spaceless = ''
         self.os: OS | None = None
@@ -224,7 +228,7 @@ class DeviceDetector:
         if mostly_repeating_characters(self.user_agent):
             return True
 
-        if random_alphanumeric_string(self.user_agent):
+        if random_alphanumeric_string(self.user_agent_lower):
             return True
 
         return long_ua_no_punctuation(self.user_agent)
@@ -309,16 +313,11 @@ class DeviceDetector:
         """
         if not self.client:
             return
-        data = {
-            'name': app_idx.pretty_name(),
-            'version': app_idx.version(),
-            'type': AppType.Generic,
-        }
-        self.client.secondary_client.update(data)
+        self.client.secondary_client.update(app_idx.details)
         try:
-            self.all_details['client']['secondary_client'] |= data
+            self.all_details['client']['secondary_client'] |= app_idx.details
         except KeyError:
-            self.all_details['client']['secondary_client'] = data
+            self.all_details['client']['secondary_client'] = app_idx.details
 
     def parse_client(self) -> None:
         """
@@ -347,26 +346,21 @@ class DeviceDetector:
         """
         Extract app_id from UA if not found in client hints.
         """
+        if self.client and not self.client.CHECK_APP_ID:
+            return
+
         # If app_id already present, it was extracted from client hints
         if self.all_details.get('client', {}).get('app_id'):
             return
 
-        app_idx = ApplicationIDExtractor(self.user_agent)
+        app_idx = ApplicationIDExtractor(self.user_agent).extract()
 
-        if app_id := app_idx.extract().get('app_id', ''):
-            client_name = self.all_details.get('client', {}).get('name', '')
+        if app_idx.details.get('app_id', ''):
             if not self.all_details.get('client'):
-                self.all_details['client'] = {
-                    'name': app_idx.pretty_name(),
-                    'app_id': app_id,
-                }
+                self.all_details['client'] = app_idx.details
                 return
 
-            self.all_details['client']['app_id'] = app_id
-            if app_id in client_name:
-                self.all_details['client']['name'] = app_idx.pretty_name()
-            elif app_idx.override_name_with_app_id(client_name=client_name):
-                self.supplement_secondary_client_data(app_idx)
+            self.supplement_secondary_client_data(app_idx)
 
     def parse_device(self) -> None:
         """
@@ -494,6 +488,15 @@ class DeviceDetector:
     def client_version(self) -> str:
         return self.all_details.get('client', {}).get('version', '')
 
+    def client_application_id(self) -> str:
+        """
+        Return Apple Bundle ID or Android Package ID if present.
+
+        2ndLine/4.8.1 (com.second.phonenumber; build:1.5; iOS 16.7.12) Alamofire/5.4.4
+        AcuityApp/5.14.0 (com.acuityscheduling.app.ios; build:1686757700; iPhone; iOS 17.1.1) SquarespaceMobileiOS
+        """
+        return self.all_details.get('client', {}).get('app_id', '')
+
     def client_type(self) -> str:
         return self.all_details.get('client', {}).get('type', '')
 
@@ -579,7 +582,7 @@ class DeviceDetector:
         return self.user_agent
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({self.user_agent})'
+        return f'{self.__class__.__name__}({self.user_agent!r})'
 
 
 class SoftwareDetector(DeviceDetector):

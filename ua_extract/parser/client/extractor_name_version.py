@@ -1,4 +1,5 @@
 from . import GenericClientParser
+from ...lazy_regex import RegexLazyIgnore
 from ..settings import METADATA_NAMES
 
 
@@ -17,17 +18,22 @@ class NameVersionExtractor(GenericClientParser):
 
     __slots__ = ()
 
-    # -------------------------------------------------------------------
-    app_name = ''
-    app_version = ''
-
-    def parse_name_version_pairs(self) -> None:
+    def parse_name_version_pairs(self) -> dict:
         """
         Check all name/version pairs for most interesting values
         """
         name_version_pairs = self.name_version_pairs()
+        app_details = self.appdetails_data
+        app_type = ''
+        app_name = ''
 
         for code, name, version in name_version_pairs:
+            if app_detail := app_details.get(code):
+                app_name = app_detail['name']
+                self.app_version = version
+                app_type = app_detail['type']
+                break
+
             # Only extract interesting pairs!
             if (
                 name.isdigit()
@@ -39,14 +45,24 @@ class NameVersionExtractor(GenericClientParser):
 
             # prefer the name that the UA starts with
             if self.user_agent.startswith(name):
-                self.app_name = name
+                app_name = name
                 self.app_version = version
-                return
+                break
 
             # consider the longest name the most interesting
             if len(name) > len(self.app_name):
-                self.app_name = name
+                app_name = name
                 self.app_version = version
+                break
+
+        # Chrome WIN 138.0.3351.83 (16e2a7bef3208e592c2c1a00548d2736a0d23ec7) channel(stable)
+        # A rather localized override :-(
+        self.app_name = 'Chrome' if app_name == 'Chrome WIN' else strip_unwanted_suffixes(app_name)
+        return {
+            'name': self.app_name,
+            'version': self.app_version if self.version_contains_numbers() else '',
+            'type': app_type,
+        }
 
     def version_contains_numbers(self) -> bool:
         """
@@ -65,7 +81,7 @@ class NameVersionExtractor(GenericClientParser):
         if self.ch_client_data:
             return
 
-        self.parse_name_version_pairs()
+        app_data = self.parse_name_version_pairs()
 
         if not self.app_name:
             return
@@ -73,12 +89,23 @@ class NameVersionExtractor(GenericClientParser):
         if self.discard_name():
             return
 
-        self.ua_data = {
-            'name': self.app_name,
-            'version': self.app_version if self.version_contains_numbers() else '',
-        }
+        self.ua_data = app_data
 
         self.known = True
+
+
+EXTRACT_SUFFIXES = RegexLazyIgnore(
+    r'^(\w+)\.?(?:ShareExtension|Widgets?Extension|HomeWidget|Notifications?(Service|Content))'
+)
+
+
+def strip_unwanted_suffixes(name: str) -> str:
+    """
+    Remove unwanted suffixes, such as "ShareExtension" or "WidgetExtension".
+    """
+    if matched := EXTRACT_SUFFIXES.match(name):
+        return matched.group(1)
+    return name
 
 
 __all__ = [

@@ -82,7 +82,6 @@ class WholeNameExtractor(GenericClientParser):
             return
 
         self.parse_name_version()
-        self.check_manual_appdetails()
 
         # WholeNameExtractor is called to supply secondary app data
         # if the Browser class matches. So if only Browser data was
@@ -121,6 +120,11 @@ class WholeNameExtractor(GenericClientParser):
                     return
                 except Exception:
                     continue
+
+        # Don't consider the entire UA as the name if it contains a slash.
+        # In that case, there should be more parsing performed elsewhere.
+        if '/' in self.user_agent:
+            return
 
         self.app_name = self.user_agent
 

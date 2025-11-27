@@ -1,20 +1,40 @@
 # Apple
-- uaname: com.apple.mobilesoftwareupdate.updatebrainservice
-  name: Apple Update Service
 - uaname: com.apple.configurator
   name: Apple Configurator
 - uaname: com.apple.configurator.xpc.deviceservice
   name: Apple Configurator
 - uaname: com.apple.configurator.xpc.internetservice
   name: Apple Configurator
+- uaname: com.apple.store.jolly
+  name: Apple Store
+- uaname: com.apple.appstore
+  name: Apple App Store
 - uaname: com.apple.appstored
   name: Apple App Store
 - uaname: com.apple.newdeviceoutreach
+  suffixes: extension
   name: Apple New Device Outreach
 - uaname: com.apple.geod
   name: Apple Location Services
+- uaname: com.apple.preferences
+  name: Apple Preferences
 - uaname: geoanalyticsd
   name: Apple Location Services
+- uaname: com.apple.amsengagementd
+  name: Apple Media Services
+- uaname: com.apple.amsengagementviewservice
+  name: Apple Media Services
+- uaname: com.apple.mobilesoftwareupdate
+  suffixes: .updatebrainservice
+  name: Apple Update Service
+- uaname: com.apple.assistantservices
+  name: Apple Support
+- uaname: com.apple.authenticationservicescore
+  suffixes: .authenticationservicesagent
+  name: Apple Support
+- uaname: com.apple.SystemProfiler
+  suffixes: .AboutExtension
+  name: Apple System Profiler
 
 - uaname: apsdaemon
   suffixes: .exe
@@ -50,7 +70,19 @@
   name: Samsung One UI Home
 - uaname: com.apusapps.launcher
   name: APUS System
+- uaname: com.piriform.ccleaner
+  suffixes: update
+  name: CCleaner
 
+- uaname: com.apple.mobilephone
+  name: Apple Phone
+- uaname: com.apple.ap.adprivacyd
+  name: Apple Ad Tracking & Privacy
+- uaname: com.apple.adlib
+  name: Apple Ad Tracking & Privacy
+- uaname: com.apple.ndoagent
+  suffixes: .intervalevent|.paireddevices
+  name: Apple NDO Agent
 
 # Google
 - uaname: com.google.android.inputmethod.latin
@@ -61,6 +93,8 @@
   name: Android Switch
 - uaname: com.google.android.gms
   name: Google Play services
+- uaname: com.android.vending
+  name: Google Play Store
 - uaname: com.google.android.apps.wallpaper
   name: Wallpapers
 - uaname: com.google.android.accessibility.switchaccess
@@ -83,3 +117,7 @@
   name: Carrier Services
 - uaname: com.google.ar.core
   name: Google Play Services for AR
+- uaname: co.heybliss.blissapp1
+  name: Bliss Keyboard
+- uaname: co.heybliss.blissapp1.keyboard
+  name: Bliss Keyboard

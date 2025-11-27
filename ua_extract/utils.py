@@ -6,9 +6,9 @@ from .enums import AppType
 from .lazy_regex import RegexLazy, RegexLazyIgnore
 
 PUNC_SPACE = f'{punctuation} '
-trans_tbl = str.maketrans({p: '' for p in PUNC_SPACE})
-punctuation_tbl = str.maketrans({p: '' for p in ' /.'})
-number_table = str.maketrans({p: '' for p in '0123456789'})
+trans_tbl = str.maketrans(dict.fromkeys(PUNC_SPACE, ''))
+punctuation_tbl = str.maketrans(dict.fromkeys(' /.', ''))
+number_table = str.maketrans(dict.fromkeys('0123456789', ''))
 REPEATED_CHARACTERS = RegexLazy(r'(.)(\1{11,})')
 
 # Safari often appends a meaningless alphanumeric string enclosed in parens.
@@ -132,12 +132,11 @@ def mostly_numerals(user_agent: str) -> bool:
     return alphabetic_chars / len(user_agent) < 0.33
 
 
-def clean_ua(user_agent: str) -> str:
+def clean_ua(user_agent: str, user_agent_lower: str) -> str:
     """
     Normalize and decode User Agent string
     """
     ua = unquote(STRIP_NUM_SUFFIX.sub('', user_agent)).strip()
-    ua_lower = ua.lower()
 
     for prefix in (
         # sprd-Galaxy-S4/1.0 Linux/2.6.35.7 Android/4.2.2 Release/10.14.2013 Browser/AppleWebKit533.1 (KHTML, like Gecko) Mozilla/5.0 Mobile  # noqa
@@ -145,6 +144,7 @@ def clean_ua(user_agent: str) -> str:
         'sprd-',
         # null (FlipboardProxy/1.1; http://flipboard.com/browserproxy)
         # (null) MyOperations/3.0.0/162 JDM/1.0
+        # (null)/14898/app_MUd3n2yw07Lg5hy0f8hRXuj1jI5ml17ww3haFrbKUBw/ios/2.4.0/iOS/12.1.4/gzip/s
         'null',
         '(null)',
         # AmazonWebView/Kindle for iOS/6.9.1.3/iOS/11.4.1/iPhone
@@ -152,9 +152,23 @@ def clean_ua(user_agent: str) -> str:
         # AmazonWebView/Prime Video/5.71.1526.2/iOS/11.4.1/iPad
         # AmazonWebView/SellingServicesOnAmazon/1.1.7/iPhone OS/11.3.1/iPhone
         'amazonwebview',
+        # com.usebutton.merchant/0.1.0-beta3 1 (iOS 11.4; iPhone8,4; com.tophatter.tophatter/4.33 614; Scale/2.00; en-US)
+        # com.usebutton.merchant/1.0.0 1 (Android 6.0.1; samsung SM-G900V; com.walmart.grocery/7.1.0 7010103; Scale/3.0; en_us)
+        # com.usebutton.merchant/1.0.0 1 (iOS 13.2.3; iPhone12,1; com.giddyinc.boxed.prod.00/2.9.4 2.9.4.11504; Scale/2.00; en-US)
+        # com.usebutton.merchant/1.0.0 1 (iOS 13.2.3; iPhone12,1; com.houzz.app/19.12.15 4305; Scale/2.00; en-US)
+        # com.usebutton.mparticle/7.9.2-1.0.0 (iOS 13.3; iPhone8,1; com.walmart.grocery/2001081028; Scale/2.0; en-US)
+        # com.usebutton.mparticle/7.9.2-1.0.0 (iOS 13.3; iPhone9,1; com.walmart.electronics/2003032106; Scale/2.0; en-US)
+        # com.usebutton.sdk/5.32.0 (iOS 12.2; iPhone10,1; com.hotwire.Hotwire/1732244; Scale/2.00; en-US; Build/appstore)
+        # com.usebutton.sdk/5.32.0 (iOS 12.2; iPhone10,3; doordash.DoorDashConsumer/1; Scale/3.00; en-US; Build/appstore)
+        'com.usebutton.',
+        # FirebaseAuth.iOS/10.14.0 com.samsclub.samsapp/25.10.40 iPhone/26.0.1 hw/iPhone18_3 iOS 10.14.0 - Sam's Club - iPhone 17
+        # FirebaseAuth.iOS/7.7.0 com.storytree.businessprints/4.7.9 iPhone/17.5.1 hw/iPhone12_1
+        # FirebaseAuth.iOS/8.4.0 depollsoft.pitchperfect/2.0.3 iPhone/18.4 hw/iPhone14_6
+        # FirebaseAuth.iOS/9.3.0 com.2mc.bidftamobile/4.26 iPhone/18.6 hw/iPhone12_8
+        'firebaseauth.ios',
     ):
-        if ua_lower.startswith(prefix):
-            return ua[len(prefix) :].strip()
+        if user_agent_lower.startswith(prefix):
+            ua = ua[len(prefix) :].strip().strip('/')
 
     return ua
 
@@ -182,10 +196,8 @@ def random_alphanumeric_string(user_agent: str) -> bool:
     ziNICEarE9VlaPSkhDAyZrkZSpuEkIA
     vVNYZaiXO9Hd5zAi
     """
-    if not user_agent:
+    if not user_agent or not user_agent.isascii() or good_ngram_matches(user_agent):
         return False
-
-    user_agent = user_agent.lower()
 
     # holav1_10593F39DD2DAEBC
     # HKUM_XBw3S
@@ -193,27 +205,11 @@ def random_alphanumeric_string(user_agent: str) -> bool:
     if user_agent.startswith(('holav1_', 'hkum_')):
         return True
 
-    short_ua_len = 17
-    ua_length = len(user_agent)
-
-    # string should have a number of spaces & punctuation chars
-    punctuation_removed_diff = ua_length - len(user_agent.translate(trans_tbl))
-    if ua_length <= 20:
-        delta = 1
-    elif ua_length <= 35:
-        delta = 2
-    else:
-        delta = 3
-
-    large_diff = punctuation_removed_diff >= delta
-
     # strings with adequate spaces / punctuation are not handled
-    if (
-        len(user_agent) <= MIN_WORD_LENGTH
-        or large_diff
-        or not user_agent.isascii()
-        or good_ngram_matches(user_agent)
-    ):
+    if (ua_length := len(user_agent)) <= MIN_WORD_LENGTH:
+        return False
+
+    if well_punctuated(user_agent, ua_length):
         return False
 
     vowels = 'aeiou'
@@ -268,6 +264,7 @@ def random_alphanumeric_string(user_agent: str) -> bool:
         longest_vowel_sequence,
     )
 
+    short_ua_len = 17
     alphabetic_threshold = 4 if ua_length < short_ua_len else 5
     intermingled_integer_threshold = 2 if ua_length < short_ua_len else 3
 
@@ -281,6 +278,22 @@ def random_alphanumeric_string(user_agent: str) -> bool:
         return ngram_analysis_gibberish(user_agent)
 
     return gibberish or ngram_analysis_gibberish(user_agent)
+
+
+def well_punctuated(user_agent: str, ua_length: int) -> bool:
+    """
+    User Agents should have a number of spaces & punctuation characters.
+    UAs with adequate spaces / punctuation are not gibberish.
+    """
+    punctuation_removed_diff = ua_length - len(user_agent.translate(trans_tbl))
+    if ua_length <= 20:
+        delta = 1
+    elif ua_length <= 35:
+        delta = 2
+    else:
+        delta = 3
+
+    return punctuation_removed_diff >= delta
 
 
 def ngram_analysis_gibberish(user_agent: str) -> bool:
