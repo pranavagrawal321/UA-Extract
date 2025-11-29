@@ -185,6 +185,8 @@ ua_extract update_regexes --no-progress
 ua_extract update_regexes --no-progress=1
 ```
 
+**Note:** Even if regexes are not updated anytime, old regexes will continue to work. They might just not work on new devices launched in recent times.
+
 ##### View CLI Help
 
 ```bash
