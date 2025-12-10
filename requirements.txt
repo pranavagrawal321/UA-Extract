@@ -1,5 +1,7 @@
+ahocorasick-rs
 pyyaml
 regex
 aiohttp
 tenacity
 rich
+exrex
