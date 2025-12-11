@@ -29,7 +29,7 @@ jobs:
 
       - name: Run regex updater
         run: |
-          ua_extract update_regexes
+          ua_extract update_regexes --no-progress
 
       - name: Check for changes
         id: diff_check
