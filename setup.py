@@ -41,7 +41,6 @@ setup(
     package_data={
         '': ['*.yml'],
     },
-    python_requires='>=3.8',
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
         "console_scripts": [
