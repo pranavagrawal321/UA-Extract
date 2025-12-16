@@ -5,7 +5,7 @@ PYTHON=python3.11
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
-clean: clean-build clean-pyc
+clean: clean-build clean-pyc format scan type-check
 
 clean-build: ## Remove build artifacts
 	rm -fr build/
@@ -18,8 +18,18 @@ clean-pyc: ## Remove Python file artifacts
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
+format: ## Run code formatting
+	ruff format ua_extract
+	ruff check --fix ua_extract
+
+scan: ## Run code scanning checks
+	bandit ua_extract -r -c pyproject.toml
+
+type-check: ## Run type checker
+	mypy ua_extract
+
 test: ## Run the tests
 	$(PYTHON) -m unittest
 
-sdist: clean ## Package new release
-	$(PYTHON) setup.py sdist
+release: clean ## Package new release
+	$(PYTHON) -m build
