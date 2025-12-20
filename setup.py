@@ -28,6 +28,7 @@ setup(
     version=get_version(),
     description="Python3 port of matomo's Device Detector",
     long_description=long_description,
+    python_requires=">=3.10",
     long_description_content_type='text/markdown',
     author='Pranav Agrawal',
     author_email='pranavagrawal321@gmail.com',
