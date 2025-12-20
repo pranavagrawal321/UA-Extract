@@ -7,11 +7,11 @@ from setuptools import setup, find_packages
 
 def get_version():
     with open('ua_extract/__init__.py', 'r') as f:
-        for line in f:
-            match = re.match(r"__version__\s*=\s*['\"]([\d\.]+)['\"]", line)
-            if match:
-                return match.group(1)
-    raise ImportError("Can't find version string in ua_extract/__init__.py")
+        line = f.readline()
+        match = re.match(r'__version__ = \'([\d\.]+)\'', line)
+
+        if not match:
+            raise ImportError("Can't read the version of device_detector")
 
 
 def parse_requirements(filename):
@@ -20,7 +20,6 @@ def parse_requirements(filename):
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-
 with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
@@ -29,19 +28,20 @@ setup(
     version=get_version(),
     description="Python3 port of matomo's Device Detector",
     long_description=long_description,
+    python_requires=">=3.10",
     long_description_content_type='text/markdown',
     author='Pranav Agrawal',
     author_email='pranavagrawal321@gmail.com',
     url='https://github.com/pranavagrawal321/ua_extract',
     packages=find_packages(exclude=["tests"]),
-    include_package_data=True,
+    package_dir={'': '.'},
     license='MIT',
+    zip_safe=True,
+    include_package_data=True,
     license_files=['LICENSE'],
-    zip_safe=False,
     package_data={
         '': ['*.yml'],
     },
-    python_requires='>=3.8',
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
         "console_scripts": [
@@ -54,8 +54,13 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',

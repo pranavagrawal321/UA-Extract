@@ -283,6 +283,7 @@ To update manually from the [Matomo Device Detector](https://github.com/matomo-o
 
    cp $upstream/regexes/device/*.yml $pdd/ua_extract/regexes/upstream/device/
    cp $upstream/regexes/client/*.yml $pdd/ua_extract/regexes/upstream/client/
+   cp $upstream/regexes/client/hints/*.yml $pdd/device_detector/regexes/upstream/client/hints/
    cp $upstream/regexes/*.yml $pdd/ua_extract/regexes/upstream/
    cp $upstream/Tests/fixtures/* $pdd/ua_extract/tests/fixtures/upstream/
    cp $upstream/Tests/Parser/Client/fixtures/* $pdd/ua_extract/tests/parser/fixtures/upstream/client/

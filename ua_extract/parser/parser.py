@@ -1,6 +1,8 @@
-from typing import Self
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
 
-from ..settings import DDCache
 from ..lazy_regex import RegexLazyIgnore
 from .client_hints import ClientHints
 from .extractors import (
@@ -102,16 +104,15 @@ class Parser(RegexLoader):
             self._is_ios_fragment = IPHONE_ONLY_UA.match(self.user_agent_lower) is not None
         return self._is_ios_fragment
 
-    def check_all_regexes(self) -> bool:
-        if not (corasick := DDCache['corasick'].get(self.cache_name)):
+    def check_all_regexes(self) -> bool | list:
+        if not (corasick := self.load_ahocorasick_patterns()):
             return True
-        matched = corasick.find_matches_as_strings(self.user_agent_lower)
-        return matched
+        return corasick.find_matches_as_strings(self.user_agent_lower)
 
     def _parse(self) -> None:
         """Override on subclasses if custom parsing is required"""
         user_agent = self.user_agent
-        if self.check_all_regexes():
+        if ac_matched := self.check_all_regexes():  # noqa
             for ua_data in self.regex_list:
                 if matched := ua_data['regex'].search(user_agent):
                     self.matched_regex = matched
@@ -119,11 +120,11 @@ class Parser(RegexLoader):
                     self.known = True
                     return
 
-        # Uncomment lines for debugging.
-        # If too many ACs are matching when the full regex list failed,
-        # to match then the AC pattern matching isn't optimizing anything.
-        # ac_matched = self.check_all_regexes()
-        # print(f'{self.cache_name}: Unwanted AC Match: {ac_matched}. {self.user_agent}')
+            # Uncomment lines for debugging.
+            # If too many ACs are matching when the full regex list failed,
+            # to match then the AC pattern matching isn't optimizing anything.
+            # if ac_matched and not isinstance(ac_matched, bool):
+            #     print(f'{self.cache_name}: Unwanted AC Match: {ac_matched}. {self.user_agent}')
 
     def parse(self) -> Self:
         """
