@@ -13,6 +13,8 @@ def get_version():
         if not match:
             raise ImportError("Can't read the version of device_detector")
 
+        return match.group(1)
+
 
 def parse_requirements(filename):
     with open(filename, 'r') as f:
