@@ -1,5 +1,5 @@
-from ..parser import Parser
-from ua_extract.parser.extractors import ModelExtractor
+import regex
+from ..parser import Parser, perform_substitutions
 from ua_extract.enums import DeviceType
 
 MOBILE_DEVICE_TYPES = {
@@ -385,6 +385,7 @@ DEVICE_BRANDS = {
     'DB': 'Dbtel',
     'DBP': 'DbPhone',
     'DCO': 'Dcode',
+    'DEC': 'DEC',
     'DL': 'Dell',
     'DL0': 'DL',
     'DE': 'Denver',
@@ -461,6 +462,7 @@ DEVICE_BRANDS = {
     'DTE': 'D-Tech',
     'DLI': 'D-Link',
     'ENO': 'eNOVA',
+    'IN4': 'Inno Hit',
     'IN2': 'iNOVA',
     'IN3': 'inovo',
     'INH': 'Inhon',
@@ -613,6 +615,7 @@ DEVICE_BRANDS = {
     'FR': 'Forstar',
     'RF': 'Fortis',
     'FRT': 'FortuneShip',
+    'FOX': 'FOX',
     'FO': 'Foxconn',
     'FOD': 'FoxxD',
     'FJ': 'FOODO',
@@ -905,7 +908,7 @@ DEVICE_BRANDS = {
     'JA': 'JAY-Tech',
     'JAM': 'Jambo',
     'KJ': 'Jiake',
-    'JD': 'Jedi',
+    'JD': 'Jide',
     'JEE': 'Jeep',
     'J6': 'Jeka',
     'JF': 'JFone',
@@ -1127,6 +1130,7 @@ DEVICE_BRANDS = {
     'MEO': 'MEO',
     'MX': 'MEU',
     'MES': 'MESWAO',
+    'MII': 'MIIA',
     'MI': 'MicroMax',
     'MIP': 'mipo',
     'MS': 'Microsoft',
@@ -1424,7 +1428,8 @@ DEVICE_BRANDS = {
     'PPD': 'PPDS',
     'P3': 'PPTV',
     'FP': 'Premio',
-    'PR1': 'Premier',
+    'PR2': 'PREMIER',
+    'PR1': 'Premier Star',
     'PR': 'Prestigio',
     'P9': 'Primepad',
     'PRM': 'PRIME',
@@ -1684,6 +1689,7 @@ DEVICE_BRANDS = {
     '06': 'Subor',
     'SUT': 'SULPICE TV',
     'SZ': 'Sumvision',
+    'SNG': 'SUNGATE',
     '0H': 'Sunstech',
     'S3': 'SunVan',
     '5S': 'Sunvell',
@@ -1707,6 +1713,7 @@ DEVICE_BRANDS = {
     '1W': 'Swisstone',
     'SWO': 'SWOFY',
     'SSK': 'SSKY',
+    'SSM': 'Ssmart',
     'SYC': 'Syco',
     'SM': 'Symphony',
     '4S': 'Syrox',
@@ -2101,6 +2108,7 @@ DEVICE_BRANDS = {
     'ZIK': 'ZIK',
     'ZKI': 'Z-Kai',
     'ZIG': 'Zigo',
+    'ZIM': 'Zimmer',
     'ZIN': 'Zinox',
     'ZO': 'Zonda',
     'ZW': 'Zonko',
@@ -2140,24 +2148,16 @@ class BaseDeviceParser(Parser):
         """
         user_agent = self.user_agent
         for model in self.ua_data.pop('models', []):
-            if not (matched := model['regex'].search(user_agent)):
-                continue
+            if model_matched := model['regex'].search(user_agent):
+                self.ua_data |= {k: v.strip() for k, v in model.items() if k != 'regex'}
+                self.ua_data['model'] = perform_model_substitutions(
+                    model['model'], model_matched, ' '
+                )
+                return
 
-            self.matched_regex = matched
-            self.ua_data |= {
-                k: v.strip().replace('_', ' ') for k, v in model.items() if k != 'regex'
-            }
-
-            # Must return after first match! Later patterns could match
-            # again and clobber the earlier, correct, values.
-            # i.e. Sony Ericsson should override Sony
-            break
-
-        if 'model' in self.ua_data and self.matched_regex:
-            if groups := self.matched_regex.groups():
-                self.ua_data['model'] = ModelExtractor(self.ua_data, groups).extract()
-
-        return None
+        if name := self.ua_data.get('model', ''):
+            if "\\g<" in name:
+                self.ua_data['model'] = perform_model_substitutions(name, self.matched_regex, ' ')
 
     def dtype(self) -> DeviceType | str:
         return self.DEVICE_TYPE
@@ -2173,7 +2173,7 @@ class BaseDeviceParser(Parser):
         """
         Set device data from UA or Client Hints.
         """
-        if self.matched_regex:
+        if self.ua_data:
             self.extract_model()
 
             self.ua_data |= {
@@ -2182,6 +2182,27 @@ class BaseDeviceParser(Parser):
             }
 
             return super().set_details()
+
+
+def perform_model_substitutions(
+    substring: str, regex_match: regex.Match, underscore_substitute: str
+) -> str:
+    """
+    Perform several normalizations after default regex substitution
+    """
+    value = perform_substitutions(substring, regex_match, underscore_substitute)
+    if not value or value == 'Build':
+        return ''
+
+    # normalize D510_TD / ETON-T730D_TD
+    # Tbook 16 Power(M5F8) Build
+    for suffix in (' TD', ' Build'):
+        value = value.removesuffix(suffix)
+
+    if value.endswith('))'):
+        return value[:-1]
+
+    return value
 
 
 __all__ = (

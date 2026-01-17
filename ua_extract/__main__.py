@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-"""
-UA-Extract CLI tool for updating regex and fixture files from an upstream source.
-
-This script provides a command-line interface to fetch and update regex and fixture files
-from a specified Git repository (default: matomo-org/device-detector) using
-either Git cloning or GitHub API methods. It supports sparse checkouts and
-optional cleanup of existing files.
-"""
-
 import argparse
 import sys
 from pathlib import Path
@@ -17,21 +7,10 @@ ROOT_PATH = Path(__file__).parent.resolve()
 
 
 def message_callback(message: str):
-    """Callback function to print progress messages."""
     print(message, file=sys.stderr)
 
 
 def main():
-    """
-    Main function to handle command-line arguments and execute the appropriate command.
-
-    Supports two commands:
-    - update_regexes: Updates regex and fixture files from an upstream source.
-    - help: Displays help for all commands or a specific command.
-
-    Exits with appropriate status codes on errors.
-    """
-
     parser = argparse.ArgumentParser(
         prog="ua_extract",
         description="UA-Extract CLI for updating regex and fixture files from an upstream source",
