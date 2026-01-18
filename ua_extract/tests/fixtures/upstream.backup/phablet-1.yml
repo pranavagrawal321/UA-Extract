@@ -1918,7 +1918,7 @@
     version: "10"
     platform: ""
   client:
-    type: mediaplayer
+    type: mobile app
     name: Pandora
     version: "2212.1"
   device:

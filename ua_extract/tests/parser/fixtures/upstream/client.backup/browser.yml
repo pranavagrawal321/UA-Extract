@@ -2351,7 +2351,7 @@
 -
   user_agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36 CCleaner/75.1.103.145
   client:
-    type: av
+    type: browser
     name: CCleaner
     version: 75.1.103.145
     engine: Blink
@@ -3437,15 +3437,15 @@
     engine: WebKit
     engine_version: ""
     family: Safari
-#-
-#  user_agent: 'Opera%20Mini/16.0.4.120849 CFNetwork/758.4.3 Darwin/15.5.0'
-#  client:
-#    type: browser
-#    name: Opera Mini iOS
-#    version: 16.0.4.120849
-#    engine: WebKit
-#    engine_version: ""
-#    family: Opera
+-
+  user_agent: 'Opera%20Mini/16.0.4.120849 CFNetwork/758.4.3 Darwin/15.5.0'
+  client:
+    type: browser
+    name: Opera Mini iOS
+    version: 16.0.4.120849
+    engine: WebKit
+    engine_version: ""
+    family: Opera
 -
   user_agent: Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.16 (KHTML, like Gecko) Chrome/20.0.1207.0 PlayFreeBrowser/2.2.0.0 Safari/537.16
   client:
@@ -5186,7 +5186,7 @@
 -
   user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36
   client:
-    type: av
+    type: browser
     name: CCleaner
     version: 99.0.4844.51
     engine: Blink
@@ -6062,7 +6062,7 @@
 -
   user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36
   client:
-    type: av
+    type: browser
     name: CCleaner
     version: 99.0.15185.77
     engine: Blink
@@ -8762,18 +8762,18 @@
   headers:
     Sec-CH-UA: '"Not/A)Brand";v="99.0.0.0", "Microsoft Edge";v="115.0.1901.200", "Chromium";v="115.0.5790.171", "Microsoft Edge WebView2";v="115.0.1901.200"'
     Sec-CH-UA-Full-Version: 115.0.1901.200
-#-
-#  user_agent: Dalvik/2.1.0 (Linux; U; Android 11; SM-A705MN Build/RP1A.200720.012)
-#  client:
-#    type: browser
-#    name: Chrome Webview
-#    version: 117.0.5938.140
-#    engine: ""
-#    engine_version: ""
-#    family: Chrome
-#  headers:
-#    Sec-CH-UA: '"Android WebView";v="117.0.5938.140", "Not;A=Brand";v="8.0.0.0", "Chromium";v="117.0.5938.140"'
-#    Sec-CH-UA-Full-Version: 117.0.5938.140
+-
+  user_agent: Dalvik/2.1.0 (Linux; U; Android 11; SM-A705MN Build/RP1A.200720.012)
+  client:
+    type: browser
+    name: Chrome Webview
+    version: 117.0.5938.140
+    engine: ""
+    engine_version: ""
+    family: Chrome
+  headers:
+    Sec-CH-UA: '"Android WebView";v="117.0.5938.140", "Not;A=Brand";v="8.0.0.0", "Chromium";v="117.0.5938.140"'
+    Sec-CH-UA-Full-Version: 117.0.5938.140
 -
   user_agent: Mozilla/5.0 (Linux; Android 12; XQ-AT72 Build/58.2.A.10.44; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.145 Mobile Safari/537.36 huaweioem (8.1.0.390)
   client:

@@ -3,21 +3,12 @@ import asyncio
 import aiohttp
 import tempfile
 import subprocess
-import contextlib
 from enum import Enum
 from typing import Optional, Callable, Dict, List
 from urllib.parse import urlparse
 from pathlib import Path
 from datetime import datetime, timezone
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TimeElapsedColumn,
-    TransferSpeedColumn,
-)
 
 ROOT_PATH = Path(__file__).resolve().parent
 
@@ -61,10 +52,8 @@ class Regexes:
         / "fixtures"
         / "upstream"
         / "device",
-        cleanup: bool = True,
         github_token: Optional[str] = None,
         message_callback: Optional[Callable[[str], None]] = None,
-        show_progress: bool = True,
     ):
         self.upstream_path = self._validate_path(upstream_path)
         self.repo_url = repo_url
@@ -76,10 +65,8 @@ class Regexes:
         self.client_upstream_dir = self._validate_path(client_upstream_dir)
         self.sparse_device_dir = sparse_device_dir
         self.device_upstream_dir = self._validate_path(device_upstream_dir)
-        self.cleanup = cleanup
         self.github_token = github_token
         self.message_callback = message_callback or (lambda _: None)
-        self.show_progress = show_progress
 
     def _notify(self, message: str):
         self.message_callback(message)
@@ -91,26 +78,49 @@ class Regexes:
 
     def _backup_directory(self, path: Path):
         if path.exists():
-            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            backup = path.with_suffix(f".backup.{ts}")
-            shutil.copytree(path, backup)
-            self._notify(f"Backed up {path} → {backup}")
+            backup = path.with_suffix(path.suffix + ".backup")
+            shutil.copytree(path, backup, dirs_exist_ok=True)
+
+    def _backup_all_targets(self):
+        for p in (
+            self.upstream_path,
+            self.fixtures_upstream_path,
+            self.client_upstream_dir,
+            self.device_upstream_dir,
+        ):
+            self._backup_directory(p)
+
+    def _restore_directory(self, path: Path):
+        backup = path.with_suffix(path.suffix + ".backup")
+        if not backup.exists():
+            self._notify(f"No backup found for {path}, skipping")
+            return
+
+        if path.exists():
+            shutil.rmtree(path)
+
+        shutil.copytree(backup, path)
+
+    def rollback_regexes(self):
+        self._notify("Rolling back regexes...")
+        for p in (
+            self.upstream_path,
+            self.fixtures_upstream_path,
+            self.client_upstream_dir,
+            self.device_upstream_dir,
+        ):
+            self._restore_directory(p)
+        self._notify("Rollback complete")
 
     def _clean_dir(self, path: Path):
-        if self.cleanup and path.exists():
-            self._backup_directory(path)
+        if path.exists():
             shutil.rmtree(path)
         path.mkdir(parents=True, exist_ok=True)
 
-    def update_regexes(
-        self, method: str = "git", dry_run: bool = False, show_progress: Optional[bool] = None
-    ):
+    def update_regexes(self, method: str = "git", dry_run: bool = False):
         if dry_run:
             self._notify(f"[Dry Run] Would update regexes using {method}")
             return
-
-        if show_progress is not None:
-            self.show_progress = show_progress
 
         try:
             method_enum = UpdateMethod(method.lower())
@@ -121,12 +131,25 @@ class Regexes:
         if not updater:
             raise RuntimeError(f"No updater registered for {method_enum}")
 
-        updater(self)
+        self._backup_all_targets()
+
+        try:
+            updater(self)
+        except Exception:
+            self._notify("Update failed — restoring backups")
+            self.rollback_regexes()
+            raise
 
 
 @register(UpdateMethod.GIT)
 def _update_with_git(self: Regexes):
+    if shutil.which("git") is None:
+        raise EnvironmentError(
+            "Git is not available on this system. Please install Git and ensure it is in PATH."
+        )
+
     self._notify("Updating regexes via Git...")
+
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(
             [
@@ -204,8 +227,7 @@ async def _check_rate_limit(session, token):
         core = data.get("rate") or {}
         remaining = core.get("remaining", 0)
         if remaining < 5:
-            reset_ts = core.get("reset", 0)
-            reset = datetime.fromtimestamp(reset_ts, tz=timezone.utc)
+            reset = datetime.fromtimestamp(core.get("reset", 0), tz=timezone.utc)
             raise RuntimeError(f"Rate limit low ({remaining}), resets at {reset.isoformat()}")
 
 
@@ -226,7 +248,9 @@ async def _walk_contents(session, api_url, token, out):
 
 
 @retry(
-    stop=stop_after_attempt(3), wait=wait_exponential(), retry=retry_if_exception_type(Exception)
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(),
+    retry=retry_if_exception_type(Exception),
 )
 async def _download(session, url, path):
     async with session.get(url) as r:
@@ -249,37 +273,17 @@ async def _api_download_tree(self, github_url, output_dir):
         contents: List[dict] = []
         await _walk_contents(session, api_url, self.github_token, contents)
 
-        progress_ctx = (
-            Progress(
-                SpinnerColumn(),
-                TextColumn("{task.description}"),
-                BarColumn(),
-                TransferSpeedColumn(),
-                TimeElapsedColumn(),
-            )
-            if self.show_progress
-            else contextlib.nullcontext()
-        )
+        sem = asyncio.Semaphore(10)
 
-        with progress_ctx as progress:
-            task = (
-                progress.add_task("API Download", total=len(contents))
-                if self.show_progress
-                else None
-            )
-            sem = asyncio.Semaphore(10)
+        async def bounded(item):
+            async with sem:
+                await _download(
+                    session,
+                    item["download_url"],
+                    Path(output_dir) / item["path"].split("/", 1)[1],
+                )
 
-            async def bounded(item):
-                async with sem:
-                    await _download(
-                        session,
-                        item["download_url"],
-                        Path(output_dir) / item["path"].split("/", 1)[1],
-                    )
-                    if task:
-                        progress.advance(task)
-
-            await asyncio.gather(*(bounded(i) for i in contents if i.get("download_url")))
+        await asyncio.gather(*(bounded(i) for i in contents if i.get("download_url")))
 
 
 @register(UpdateMethod.API)
@@ -287,7 +291,10 @@ def _update_with_api(self: Regexes):
     self._notify("Updating regexes via GitHub API...")
 
     tasks = [
-        ("https://github.com/matomo-org/device-detector/tree/master/regexes", self.upstream_path),
+        (
+            "https://github.com/matomo-org/device-detector/tree/master/regexes",
+            self.upstream_path,
+        ),
         (
             "https://github.com/matomo-org/device-detector/tree/master/Tests/fixtures",
             self.fixtures_upstream_path,
