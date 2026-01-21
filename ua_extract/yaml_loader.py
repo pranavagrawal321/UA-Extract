@@ -3,6 +3,7 @@ from typing import TypedDict
 import yaml
 import ahocorasick_rs
 from pathlib import Path
+import warnings
 
 try:
     from typing import Self
@@ -46,7 +47,14 @@ class RegexLoader:
             yfile = f'ua_extract/{yfile}'
             return yaml.load(ua_extract.__loader__.get_data(yfile), SafeLoader)  # type: ignore[union-attr]
         except OSError:
-            return []
+            if "upstream" in yfile:
+                warnings.warn(
+                    f"File {yfile} not found in regexes directory. Try updating the user agents.",
+                    category=UserWarning,
+                    stacklevel=2,
+                )
+
+            return {}
 
     def yaml_to_list(self, yfile: str) -> list[dict]:
         """
