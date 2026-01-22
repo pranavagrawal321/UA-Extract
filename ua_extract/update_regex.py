@@ -280,12 +280,16 @@ async def _download(session, url, path):
 
 async def _api_download_tree(self, github_url, output_dir):
     meta = _normalize_github_url(github_url)
+
     api_url = (
         f"https://api.github.com/repos/{meta['owner']}/{meta['repo']}"
         f"/contents/{meta['path']}?ref={meta['branch']}"
     )
 
     headers = {"Authorization": f"token {self.github_token}"} if self.github_token else {}
+
+    subtree_root = meta["path"].rstrip("/") + "/"
+
     async with aiohttp.ClientSession(headers=headers) as session:
         await _check_rate_limit(session, self.github_token)
 
@@ -296,13 +300,24 @@ async def _api_download_tree(self, github_url, output_dir):
 
         async def bounded(item):
             async with sem:
+                if not item.get("download_url"):
+                    return
+
+                relative_path = item["path"]
+                if not relative_path.startswith(subtree_root):
+                    raise RuntimeError(
+                        f"Unexpected path {relative_path}, expected prefix {subtree_root}"
+                    )
+
+                relative_path = relative_path[len(subtree_root) :]
+
                 await _download(
                     session,
                     item["download_url"],
-                    Path(output_dir) / item["path"].split("/", 1)[1],
+                    Path(output_dir) / relative_path,
                 )
 
-        await asyncio.gather(*(bounded(i) for i in contents if i.get("download_url")))
+        await asyncio.gather(*(bounded(i) for i in contents))
 
 
 @register(UpdateMethod.API)
