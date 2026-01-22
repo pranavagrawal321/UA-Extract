@@ -1,13 +1,14 @@
+import stat
 import shutil
 import asyncio
 import aiohttp
 import tempfile
 import subprocess
 from enum import Enum
-from typing import Optional, Callable, Dict, List
 from urllib.parse import urlparse
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional, Callable, Dict, List
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 ROOT_PATH = Path(__file__).resolve().parent
@@ -27,6 +28,22 @@ def register(method: UpdateMethod):
         return func
 
     return decorator
+
+
+def clean_and_format_regexes():
+    script_path = (ROOT_PATH / ".." / "configure_regex_interpolators.sh").resolve()
+
+    if not script_path.exists():
+        raise FileNotFoundError(f"{script_path} does not exist")
+
+    mode = script_path.stat().st_mode
+    if not (mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)):
+        script_path.chmod(mode | stat.S_IXUSR)
+
+    subprocess.run(
+        [str(script_path)],
+        check=True,
+    )
 
 
 class Regexes:
@@ -200,6 +217,8 @@ def _update_with_git(self: Regexes):
             shutil.copytree(src, dst, dirs_exist_ok=True)
             (dst / "__init__.py").touch()
 
+        clean_and_format_regexes()
+
     self._notify("Git update complete")
 
 
@@ -316,4 +335,7 @@ def _update_with_api(self: Regexes):
             (path / "__init__.py").touch()
 
     asyncio.run(runner())
+
+    clean_and_format_regexes()
+
     self._notify("API update complete")

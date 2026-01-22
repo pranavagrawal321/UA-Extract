@@ -1,12 +1,12 @@
-from pathlib import Path
 import sys
+import json
 import typer
-
-from .update_regex import Regexes, UpdateMethod
+import warnings
+from pathlib import Path
 from . import DeviceDetector
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, Any, Union
-import json
+from .update_regex import Regexes, UpdateMethod
 
 ROOT_PATH = Path(__file__).parent.resolve()
 
@@ -44,7 +44,19 @@ def update_regexes(
     repo: str = "https://github.com/matomo-org/device-detector.git",
     branch: str = "master",
     method: UpdateMethod = UpdateMethod.GIT,
+    no_progress: bool = typer.Option(
+        False,
+        "--no-progress",
+        help="(DEPRECATED) Progress is always disabled. This option will be removed.",
+        hidden=True,
+    ),
 ):
+    if no_progress:
+        warnings.warn(
+            "--no-progress is deprecated and has no effect; it will be removed",
+            FutureWarning,
+            stacklevel=2,
+        )
     regexes = Regexes(
         upstream_path=str(path),
         repo_url=repo,
@@ -89,5 +101,14 @@ def parse(
         help="Headers as JSON or KEY=VALUE,KEY=VALUE",
     ),
 ):
-    parsed = parse_device(ua, eval(headers))
+    try:
+        parsed_headers: Optional[Dict[str, str]] = (
+            json.loads(headers) if headers is not None else None
+        )
+        if parsed_headers is not None and not isinstance(parsed_headers, dict):
+            raise ValueError
+    except Exception:
+        raise typer.BadParameter('--headers must be a JSON object, e.g. {"Accept":"*/*"}')
+
+    parsed = parse_device(ua, parsed_headers)
     print(json.dumps(asdict(parsed), indent=2))
