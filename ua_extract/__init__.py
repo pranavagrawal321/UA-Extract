@@ -1,5 +1,9 @@
-__version__ = '1.2.4'
+__version__ = '1.3.0'
 from .settings import *
 from .parser import *
 from .device_detector import *
 from .update_regex import Regexes
+
+import ua_extract.warnings
+
+ua_extract.warnings.enable_colored_warnings()

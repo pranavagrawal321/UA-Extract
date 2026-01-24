@@ -1,302 +1,360 @@
-A Python user-agent parser & device detector powered by Matomo’s regex database — accurate, updatable, and production-ready.
-
-[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract)](https://pepy.tech/projects/ua-extract)
-[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/month)](https://pepy.tech/projects/ua-extract)[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract/week)](https://pepy.tech/projects/ua-extract)
-
 # UA-Extract
 
-UA-Extract is a precise and fast user agent parser and device detector written in Python, built on top of the largest and most up-to-date user agent database from the [Matomo Device Detector](https://github.com/matomo-org/device-detector) project. It parses user agent strings to detect browsers, operating systems, devices (desktop, tablet, mobile, TV, cars, consoles, etc.), brands, and models, including rare and obscure ones.
+A Python user-agent parser and device detector powered by Matomo’s regex database — accurate, updatable, and production-ready.
 
-UA-Extract is optimized for speed with in-memory caching and supports high-performance parsing. This project is a Python port of the [Universal Device Detection library](https://github.com/thinkwelltwd/device_detector) by [thinkwelltwd](https://github.com/thinkwelltwd), with Pythonic adaptations while maintaining compatibility with the original regex and fixture YAML files.
+[![PyPI Downloads](https://static.pepy.tech/badge/ua-extract)](https://pepy.tech/projects/ua-extract)
+[![PyPI Downloads (Month)](https://static.pepy.tech/badge/ua-extract/month)](https://pepy.tech/projects/ua-extract)
+[![PyPI Downloads (Week)](https://static.pepy.tech/badge/ua-extract/week)](https://pepy.tech/projects/ua-extract)
 
-You can find the source code at [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract).
+---
+
+## Overview
+
+**UA-Extract** is a fast and precise user-agent parser written in Python, built on top of the continuously maintained regex and fixture database from the [Matomo Device Detector](https://github.com/matomo-org/device-detector) project.
+
+It detects:
+
+- Browsers and applications
+- Operating systems and versions
+- Devices (desktop, smartphone, tablet, TV, console, car, camera, etc.)
+- Brands and models
+- Bots and crawlers
+- Secondary clients embedded in mobile user agents
+
+UA-Extract is optimized for performance using in-memory parsing and caching, and is designed for **long-running production services**.
+
+This project is a Python port of the [Universal Device Detection library](https://github.com/thinkwelltwd/device_detector), adapted to Python while maintaining compatibility with Matomo’s original YAML regex and fixture files.
+
+Source code: [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract)
+
+---
 
 ## Disclaimer
 
-This port is not an exact copy of the original code; it includes Python-specific adaptations. However, it uses the original regex and fixture YAML files to benefit from updates and pull requests to both the original and ported versions.
+This is not a line-by-line port of the original PHP implementation. The parsing logic is Pythonic, but the **regex and fixture data are identical**, ensuring compatibility with upstream updates.
+
+---
+
+## Links
+
+- 🔗 **PyPI**: [https://pypi.org/project/ua-extract/](https://pypi.org/project/ua-extract/)
+- 🔗 **GitHub**: [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract)
+
+---
 
 ## Installation
 
-Install UA-Extract using pip:
+### Stable Release (PyPI)
 
 ```bash
 pip install ua_extract
 ```
 
-### Dependencies
+---
 
-- **[PyYAML](https://pypi.org/project/PyYAML/)**: For parsing regex and fixture YAML files.
-- **[rich](https://pypi.org/project/rich/)**: For displaying progress bars during regex and fixture updates.
-- **[aiohttp](https://pypi.org/project/aiohttp/)**: For asynchronous downloads when using the GitHub API method.
-- **[tenacity](https://pypi.org/project/tenacity/)**: For retry logic during API downloads.
-- **[Git](https://git-scm.com/)**: Required for the `git` update method.
+### Nightly / Development Version
 
-## Usage
+> 🔄 **Regex Update Frequency**: Matomo’s upstream regexes and fixtures are generally updated **daily whenever new changes are available**. The nightly / development version of UA-Extract tracks these updates closely, making it the best choice if you want the freshest device and client detection.
 
-### Updating Regex and Fixture Files
+If you want the **latest regex updates** and any unreleased fixes or minor improvements, you can install UA-Extract directly from the GitHub repository.
 
-The regex and fixture files can become outdated and may not accurately detect newly released devices or clients. It’s recommended to update them periodically from the [Matomo Device Detector](https://github.com/matomo-org/device-detector) repository. Updates can be performed programmatically or via the command-line interface (CLI), with support for two methods: Git cloning (`git`) or GitHub API downloads (`api`).
+This version may include:
 
-#### Programmatic Update
+- newer device and client regexes
+- updated fixture files
+- small internal changes not yet published to PyPI
 
-Use the `Regexes` class to update regex and fixture files. Configure the update process by passing arguments to the `Regexes` constructor, then call `update_regexes()` with the desired method (`"git"` or `"api"`) and optional `dry_run` parameter. The `github_token` parameter is optional but recommended for the `api` method to avoid GitHub API rate limits (60 requests/hour unauthenticated, 5000/hour authenticated).
+> ⚠️ The nightly version is recommended for testing, experimentation, or environments that require the freshest device detection. For strict stability guarantees, prefer the PyPI release.
+
+#### Install from GitHub
+
+```bash
+pip install git+https://github.com/pranavagrawal321/UA-Extract.git
+```
+
+#### Upgrade an existing GitHub install
+
+```bash
+pip install --upgrade git+https://github.com/pranavagrawal321/UA-Extract.git
+```
+
+---
+
+## CLI Usage
+
+### Install Shell Completion
+
+```bash
+ua_extract --install-completion
+```
+
+---
+
+### Update Regex & Fixture Files
+
+Regex and fixture files should be updated periodically to recognize newly released devices and clients.
+
+```bash
+ua_extract update_regexes
+```
+
+By default, this updates files using **Git sparse checkout** from the Matomo repository.
+
+#### CLI Options
+
+| Option     | Description                           |
+| ---------- | ------------------------------------- |
+| `--path`   | Destination directory for regex files |
+| `--repo`   | Git repository URL                    |
+| `--branch` | Git branch (Git method only)          |
+| `--method` | Update method: `git` or `api`         |
+
+> `--no-progress` exists for backward compatibility but has no effect and will be removed.
+
+---
+
+## Programmatic Updates
+
+Regex updates can also be triggered programmatically using the `Regexes` class.
+
+### Git Method (recommended)
+
+Uses:
+
+- shallow clone
+- sparse checkout
+- atomic backup and rollback on failure
 
 ```python
 from ua_extract import Regexes
 
-# Update using default settings (Git method, default paths, repo, branch, etc.)
 Regexes().update_regexes()
+```
 
-# Update using GitHub API with custom paths and a GitHub token
-Regexes(
-    upstream_path="/custom/regexes",
-    fixtures_upstream_path="/custom/fixtures",
-    client_upstream_dir="/custom/client_fixtures",
-    device_upstream_dir="/custom/device_fixtures",
-    repo_url="https://github.com/matomo-org/device-detector.git",
-    branch="dev",
-    github_token="your_token_here"
-).update_regexes(method="api", show_progress=True)
+---
 
-# Dry run to simulate update without modifying files
+### GitHub API Method
+
+Uses:
+
+- asynchronous downloads (`aiohttp`)
+- concurrency limiting
+- exponential retry logic
+- GitHub rate-limit detection
+
+```python
+from ua_extract import Regexes
+
+Regexes(github_token="your_token").update_regexes(method="api")
+```
+
+**Notes:**
+
+- GitHub API limits: 60 requests/hour unauthenticated, 5000/hour authenticated
+- Token **does not require special scopes** (public repository access only)
+- API method always pulls from the `master` branch
+
+---
+
+### Dry Run
+
+```python
 Regexes().update_regexes(method="api", dry_run=True)
 ```
 
-##### `Regexes` Constructor Arguments
+---
 
-The `Regexes` class accepts the following arguments during initialization:
+## Update Safety Guarantees
 
-- `upstream_path` (str, default: `regexes/upstream` in the project directory): Destination path for regex files.
-- `repo_url` (str, default: `"https://github.com/matomo-org/device-detector.git"`): URL of the Git repository.
-- `branch` (str, default: `"master"`): Git branch to fetch (e.g., `master`, `dev`).
-- `sparse_dir` (str, default: `"regexes"`): Directory in the repository for regex files.
-- `sparse_fixtures_dir` (str, default: `"Tests/fixtures"`): Directory in the repository for general fixtures.
-- `fixtures_upstream_path` (str, default: `tests/fixtures/upstream`): Destination path for general fixture files.
-- `sparse_client_dir` (str, default: `"Tests/Parser/Client/fixtures"`): Directory in the repository for client fixtures.
-- `client_upstream_dir` (str, default: `tests/parser/fixtures/upstream/client`): Destination path for client fixture files.
-- `sparse_device_dir` (str, default: `"Tests/Parser/Device/fixtures"`): Directory in the repository for device fixtures.
-- `device_upstream_dir` (str, default: `tests/parser/fixtures/upstream/device`): Destination path for device fixture files.
-- `cleanup` (bool, default: `True`): If `True`, deletes existing files in destination paths before updating.
-- `github_token` (Optional[str], default: `None`): GitHub personal access token for the API method.
-- `message_callback` (Optional[callable], default: `None`): Function to handle progress messages.
+UA-Extract ensures update safety by:
 
-##### `update_regexes` Method
+- creating backups of all destination directories
+- restoring the previous state automatically on failure
+- never leaving partially updated files behind
 
-The `update_regexes` method accepts the following arguments:
+This makes it safe to run updates in CI or production environments.
 
-- `method` (str, default: `"git"`): Update method (`"git"` for cloning via Git, `"api"` for downloading via GitHub API).
-- `dry_run` (bool, default: `False`): If `True`, simulates the update without modifying the filesystem.
-- `show_progress` (bool, default: `True`) If `True`, shows a progress bar while updating regex
+---
 
-##### Update Methods and Use Cases
+## Parsing User Agents
 
-- **Git Method (`method="git"`)**:
-  - **Description**: Clones the repository using Git, fetching only specified directories with shallow cloning (`--depth 1`) and sparse checkout (`--filter=blob:none`).
-  - **Use Case**: Ideal for users with Git installed and no API rate limit concerns.
-  - **Requirements**: Requires [Git](https://git-scm.com/) installed and accessible.
-  - **Process**:
-    - Clones the repository into a temporary directory.
-    - Sets up sparse checkout for specified directories.
-    - Copies files to destination paths.
-    - Creates `__init__.py` files to make destinations Python packages.
-  - **Progress Feedback**: Displays a progress bar using `rich` (cloning, sparse-checkout, copying, finalizing).
-  - **Error Handling**: Logs Git command failures using a message callback.
-  - **Example**:
-    ```python
-    Regexes().update_regexes()  # Uses default settings with Git method
-    ```
+### CLI Parsing
 
-- **GitHub API Method (`method="api"`)**:
-  - **Description**: Downloads files asynchronously from the GitHub API using `aiohttp`.
-  - **Use Case**: Suitable for users without Git or with restricted Git access.
-  - **Requirements**: Requires `aiohttp` and `tenacity`. A GitHub token is recommended.
-  - **GitHub Token**:
-    - **When Needed**: GitHub API rate limits are 60 requests/hour (unauthenticated) or 5000/hour (authenticated).
-    - **How to Provide**: Pass via `github_token` in the `Regexes` constructor or `--github-token` CLI option.
-    - **How to Generate**: Create a token in GitHub under Settings > Developer settings > Personal access tokens with `repo` scope.
-  - **Process**:
-    - Validates the repository URL format.
-    - Fetches file metadata recursively.
-    - Downloads files with retry logic (3 attempts, exponential backoff).
-    - Saves files to destination paths.
-    - Creates `__init__.py` files.
-  - **Progress Feedback**: Displays a progress bar with download speed and elapsed time.
-  - **Error Handling**: Logs errors (e.g., rate limits, network issues) and retries transient failures.
-  - **Example**:
-    ```python
-    Regexes(github_token="your_token_here").update_regexes(method="api")
-    ```
-
-##### Notes for Both Methods
-
-- **Cleanup**: If `cleanup=True`, destination directories are deleted before updating.
-- **Progress**: Progress bars provide visual feedback, and messages are printed to `stderr`.
-- **Temporary Directory**: The `git` method uses a temporary directory, cleaned up automatically.
-- **URL Validation**: The `api` method ensures the URL matches `https://github.com/user/repo/tree/branch/path`.
-
-#### CLI Update
-
-Use the `ua_extract` CLI to update regex and fixture files:
+You can parse a user-agent directly from the command line using the `parse` command. The CLI outputs a JSON object containing **all detected fields**.
 
 ```bash
-ua_extract update_regexes
+ua_extract parse \
+  --ua "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16D57 EtsyInc/5.22" \
+  --headers '{"Accept":"*/*","X-Requested-With":"com.example.app"}'
 ```
 
-##### CLI Options
+#### Sample CLI JSON Output
 
-The `update_regexes` command supports the following options:
-
-- `-p, --path` (default: `regexes/upstream`): Destination path for regex files.
-- `-r, --repo` (default: `https://github.com/matomo-org/device-detector.git`): Git repository URL.
-- `-b, --branch` (default: `master`): Git branch name.
-- `-d, --dir` (default: `regexes`): Sparse directory for regex files.
-- `--fixtures-dir` (default: `Tests/fixtures`): Sparse directory for general fixtures.
-- `--fixtures-path` (default: `tests/fixtures/upstream`): Destination path for general fixtures.
-- `--client-dir` (default: `Tests/Parser/Client/fixtures`): Sparse directory for client fixtures.
-- `--client-path` (default: `tests/parser/fixtures/upstream/client`): Destination path for client fixtures.
-- `--device-dir` (default: `Tests/Parser/Device/fixtures`): Sparse directory for device fixtures.
-- `--device-path` (default: `tests/parser/fixtures/upstream/device`): Destination path for device fixtures.
-- `-c, --cleanup` (default: enabled): Delete existing files before updating.
-- `-m, --method` (default: `git`): Update method (`git` or `api`).
-- `-g, --github-token` (default: none): GitHub personal access token for API method.
-- `--dry-run` (default: disabled): Simulate update without modifying files.
-- `--no-progress` (default: 0): Shows the progress bar
-
-##### Example Commands
-
-```bash
-# Update with default settings (Git method)
-ua_extract update_regexes
-
-# Update with custom paths and cleanup disabled
-ua_extract update_regexes --path /custom/regexes --fixtures-path /custom/fixtures --client-path /custom/client --device-path /custom/device --no-cleanup
-
-# Update using GitHub API with a token
-ua_extract update_regexes --method api --github-token your_token_here
-
-# Dry run with GitHub API
-ua_extract update_regexes --method api --dry-run
-
-# Update from a specific branch
-ua_extract update_regexes --branch dev
-
-# Remove progress bar
-ua_extract update_regexes --no-progress
-ua_extract update_regexes --no-progress=1
+```json
+{
+  "is_bot": false,
+  "os_name": "iOS",
+  "os_version": "12.1.4",
+  "engine": {
+    "default": "WebKit"
+  },
+  "device_brand": "Apple",
+  "device_model": "iPhone",
+  "device_type": "smartphone",
+  "secondary_client_name": "EtsyInc",
+  "secondary_client_type": "generic",
+  "secondary_client_version": "5.22",
+  "bot_name": null,
+  "client_name": "Mobile Safari",
+  "client_type": "browser",
+  "client_application_id": null,
+  "is_television": false,
+  "uses_mobile_browser": true,
+  "is_mobile": true,
+  "is_desktop": false,
+  "is_feature_phone": false,
+  "preferred_client_name": "Mobile Safari",
+  "preferred_client_version": "605.1.15",
+  "preferred_client_type": "browser"
+}
 ```
 
-**Note:** Even if regexes are not updated anytime, old regexes will continue to work. They might just not work on new devices launched in recent times.
+**Notes:**
 
-##### View CLI Help
+- `--headers` must be a valid JSON object
+- headers are optional; omit `--headers` if not needed
+- the output JSON mirrors the fields shown in the Python API example below
 
-```bash
-# List all commands
-ua_extract help
+---
 
-# Detailed help for update_regexes
-ua_extract help update_regexes
-```
+### Field Reference
 
-##### Notes
+The following table describes every field returned by the CLI and Python API.
 
-- The `git` method requires [Git](https://git-scm.com/) installed.
-- The `api` method may hit rate limits without a token.
-- Progress bars and messages provide feedback during updates.
+| Field                      | Type                | Description                                    |
+| -------------------------- | ------------------- | ---------------------------------------------- |
+| `is_bot`                   | bool                | Whether the user agent is identified as a bot  |
+| `bot_name`                 | str \| null         | Name of the bot, if detected                   |
+| `os_name`                  | str \| null         | Operating system name                          |
+| `os_version`               | str \| null         | Operating system version                       |
+| `engine`                   | dict \| str \| null | Rendering engine information                   |
+| `device_brand`             | str \| null         | Device manufacturer                            |
+| `device_model`             | str \| null         | Device model                                   |
+| `device_type`              | str \| null         | Device category (smartphone, tablet, TV, etc.) |
+| `client_name`              | str \| null         | Primary client (browser or app) name           |
+| `client_type`              | str \| null         | Client type (browser, app, library, etc.)      |
+| `client_version`           | str \| null         | Client version                                 |
+| `client_application_id`    | str \| null         | Application identifier, if available           |
+| `secondary_client_name`    | str \| null         | Embedded or wrapper client name                |
+| `secondary_client_type`    | str \| null         | Embedded client type                           |
+| `secondary_client_version` | str \| null         | Embedded client version                        |
+| `is_mobile`                | bool \| null        | Whether the device is mobile                   |
+| `is_desktop`               | bool \| null        | Whether the device is desktop                  |
+| `is_television`            | bool \| null        | Whether the device is a TV                     |
+| `uses_mobile_browser`      | bool \| null        | Whether a mobile browser is used               |
+| `is_feature_phone`         | bool \| null        | Whether the device is a feature phone          |
+| `preferred_client_name`    | str \| null         | Best client choice when multiple clients exist |
+| `preferred_client_version` | str \| null         | Preferred client version                       |
+| `preferred_client_type`    | str \| null         | Preferred client type                          |
 
-#### Parsing User Agents
+---
 
-##### Full Device Detection
+### Python API
 
-To get comprehensive information about a user agent:
+#### Full Device Detection
 
 ```python
 from ua_extract import DeviceDetector
 
-ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_1_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16D57 EtsyInc/5.22 rv:52200.62.0'
-device = DeviceDetector(ua).parse()
+ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_1_4 like Mac OS X)..."
 
-print(device.is_bot())              # >>> False
-print(device.os_name())             # >>> iOS
-print(device.os_version())          # >>> 12.1.4
-print(device.engine())              # >>> {'default': 'WebKit'}
-print(device.device_brand())        # >>> Apple
-print(device.device_model())        # >>> iPhone
-print(device.device_type())         # >>> smartphone
-print(device.secondary_client_name())     # >>> EtsyInc
-print(device.secondary_client_type())     # >>> generic
-print(device.secondary_client_version())  # >>> 5.22
-print(device.bot_name())
+headers = {
+    "User-Agent": ua,
+    "Accept": "*/*",
+    "X-Requested-With": "com.example.app",
+}
+
+device = DeviceDetector(ua, headers=headers).parse()
+
+# Bot & classification
+device.is_bot()
+device.bot_name()
+
+# Operating system
+device.os_name()
+device.os_version()
+
+# Rendering engine
+device.engine()
+
+# Device information
+device.device_brand()
+device.device_model()
+device.device_type()
+
+# Client (primary)
+device.client_name()
+device.client_type()
+device.client_version()
+device.client_application_id()
+
+# Secondary client
+device.secondary_client_name()
+device.secondary_client_type()
+device.secondary_client_version()
+
+# Device characteristics
+device.is_television()
+device.uses_mobile_browser()
+device.is_mobile()
+device.is_desktop()
+device.is_feature_phone()
+
+# Preferred client
+device.preferred_client_name()
+device.preferred_client_version()
+device.preferred_client_type()
 ```
 
-##### High-Performance Software Detection
+---
 
-For faster parsing, skipping bot and device hardware detection:
+#### High-Performance Software Detection
+
+Skips hardware detection for faster parsing:
 
 ```python
 from ua_extract import SoftwareDetector
 
-ua = 'Mozilla/5.0 (Linux; Android 6.0; 4Good Light A103 Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.83 Mobile Safari/537.36'
 device = SoftwareDetector(ua).parse()
 
-print(device.client_name())         # >>> Chrome Mobile
-print(device.client_type())         # >>> browser
-print(device.client_version())      # >>> 58.0.3029.83
-print(device.os_name())             # >>> Android
-print(device.os_version())          # >>> 6.0
-print(device.engine())              # >>> {'default': 'WebKit', 'versions': {28: 'Blink'}}
-print(device.device_brand())        # >>> ''
-print(device.device_model())        # >>> ''
-print(device.device_type())         # >>> smartphone
+device.client_name()
+device.client_version()
+device.os_name()
 ```
 
-##### App Information in Mobile Browser User Agents
-
-Some mobile browser user agents include app information, as shown in the `DeviceDetector` example.
+---
 
 ## Testing
 
 ```bash
-# Test Cases. Run entire suite by:
-
 python -m unittest
+```
 
-# Run individual test class by:
+Run a single test module:
 
+```bash
 python -m ua_extract.tests.parser.test_bot
 ```
 
-## Updating from Matomo Project
-
-To update manually from the [Matomo Device Detector](https://github.com/matomo-org/device-detector) project:
-
-1. Clone the Matomo repository:
-
-   ```bash
-   git clone https://github.com/matomo-org/device-detector
-   ```
-
-2. Copy the updated files to your UA-Extract project:
-
-   ```bash
-   export upstream=/path/to/cloned/matomo/device-detector
-   export pdd=/path/to/python/ported/ua_extract
-
-   cp $upstream/regexes/device/*.yml $pdd/ua_extract/regexes/upstream/device/
-   cp $upstream/regexes/client/*.yml $pdd/ua_extract/regexes/upstream/client/
-   cp $upstream/regexes/client/hints/*.yml $pdd/device_detector/regexes/upstream/client/hints/
-   cp $upstream/regexes/*.yml $pdd/ua_extract/regexes/upstream/
-   cp $upstream/Tests/fixtures/* $pdd/ua_extract/tests/fixtures/upstream/
-   cp $upstream/Tests/Parser/Client/fixtures/* $pdd/ua_extract/tests/parser/fixtures/upstream/client/
-   cp $upstream/Tests/Parser/Device/fixtures/* $pdd/ua_extract/tests/parser/fixtures/upstream/device/
-   ```
-
-3. Review logic changes in the Matomo PHP files and update the Python code.
-4. Run tests and fix any failures.
+---
 
 ## Contributing
 
-Contributions are welcome! Submit pull requests or issues to [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract).
+Contributions and bug reports are welcome: [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract)
+
+---
 
 ## License
 
-This project is licensed under the MIT License, consistent with the [original Device Detector project](https://github.com/thinkwelltwd/device_detector).
+MIT License — compatible with the original Device Detector project.
+
