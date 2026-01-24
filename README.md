@@ -35,6 +35,13 @@ This is not a line-by-line port of the original PHP implementation. The parsing 
 
 ---
 
+## Links
+
+- 🔗 **PyPI**: [https://pypi.org/project/ua-extract/](https://pypi.org/project/ua-extract/)
+- 🔗 **GitHub**: [https://github.com/pranavagrawal321/UA-Extract](https://github.com/pranavagrawal321/UA-Extract)
+
+---
+
 ## Installation
 
 ### Stable Release (PyPI)
