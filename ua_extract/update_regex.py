@@ -31,7 +31,7 @@ def register(method: UpdateMethod):
 
 
 def clean_and_format_regexes():
-    script_path = (ROOT_PATH / ".." / "configure_regex_interpolators.sh").resolve()
+    script_path = (ROOT_PATH / "configure_regex_interpolators.sh").resolve()
 
     if not script_path.exists():
         raise FileNotFoundError(f"{script_path} does not exist")
