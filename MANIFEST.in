@@ -1,6 +1,7 @@
 include requirements.txt
 include README.md
 include ua_extract/appids/*.yml ua_extract/appdetails/*.yml
+include ua_extract/configure_regex_interpolators.sh
 recursive-include ua_extract/regexes *
-recursive-include ua_extract *.yml
+recursive-include ua_extract *.yml *.sh
 global-exclude *~

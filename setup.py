@@ -42,7 +42,7 @@ setup(
     include_package_data=True,
     license_files=['LICENSE'],
     package_data={
-        '': ['*.yml'],
+        '': ['*.yml', '*.sh'],
     },
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
