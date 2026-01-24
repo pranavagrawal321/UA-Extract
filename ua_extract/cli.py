@@ -36,9 +36,17 @@ class ParsedDevice:
     client_name: Optional[str]
     client_type: Optional[str]
     client_application_id: Optional[str]
+    is_television: Optional[bool]
+    uses_mobile_browser: Optional[bool]
+    is_mobile: Optional[bool]
+    is_desktop: Optional[bool]
+    is_feature_phone: Optional[bool]
+    preferred_client_name: Optional[str]
+    preferred_client_version: Optional[str]
+    preferred_client_type: Optional[str]
 
 
-@app.command(name="update_regexes")
+@app.command(name="update_regexes", help="Update regexes from upstream repository")
 def update_regexes(
     path: Path = ROOT_PATH / "regexes" / "upstream",
     repo: str = "https://github.com/matomo-org/device-detector.git",
@@ -66,7 +74,7 @@ def update_regexes(
     regexes.update_regexes(method=method.value)
 
 
-@app.command(name="rollback_regexes")
+@app.command(name="rollback_regexes", help="Rollback regexes to last known good state")
 def rollback_regexes():
     Regexes(message_callback=print).rollback_regexes()
 
@@ -89,10 +97,18 @@ def parse_device(ua: str, headers) -> ParsedDevice:
         client_name=d.client_name(),
         client_type=d.client_type(),
         client_application_id=d.client_application_id(),
+        is_television=d.is_television(),
+        uses_mobile_browser=d.uses_mobile_browser(),
+        is_mobile=d.is_mobile(),
+        is_desktop=d.is_desktop(),
+        is_feature_phone=d.is_feature_phone(),
+        preferred_client_name=d.preferred_client_name(),
+        preferred_client_version=d.preferred_client_version(),
+        preferred_client_type=d.preferred_client_type(),
     )
 
 
-@app.command()
+@app.command(help="Parse a user-agent along with headers")
 def parse(
     ua: str = typer.Option(..., "--ua", help="User-Agent string"),
     headers: Optional[str] = typer.Option(
