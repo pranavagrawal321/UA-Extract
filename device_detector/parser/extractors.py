@@ -3,21 +3,21 @@ from ..yaml_loader import RegexLoader, app_pretty_names_types_data
 from device_detector.enums import AppType
 from device_detector.utils import normalize_app_name
 
-APP_ID_SANS_VERSION = RegexLazyIgnore(r'\b([a-z][a-z_]+(?:\.[a-z0-9_-]+){2,})')
+APP_ID_SANS_VERSION = RegexLazyIgnore(r'\b([a-z]{1,5}(?:\.[\w-]+){1,})')
 
 # 6H4HRTU5E3.com.avast.osx.secureline.avastsecurelinehelper/47978 CFNetwork/976 Darwin/18.2.0 (x86_64)
 # YMobile/1.0(com.kitkatandroid.keyboard/4.3.2;Android/6.0.1;lv1;LGE;LG-M153;;792x480
 # x86_64; macOS 10.14.5 (18F132); com.apple.ap.adprivacyd; 143441-1,13
 APP_ID_VERSION = RegexLazyIgnore(
-    r'\b(?P<name>[a-z]{2,5}\.[\w\d\.\-]+)[;:/] ?(?P<version>[\d\.\-]+)\b'
+    r'\b(?P<name>[a-z]{2,5}\.[\w\.\-]+)[;:/] ?(?P<version>[\d\.\-]+)\b'
 )
 
 # Match Application IDs like:
-# YanFlex.CPlus.Craigslist
-# depollsoft.pitchperfect
+# FirebaseAuth.iOS/7.6.0 YanFlex.CPlus.Craigslist/5.1.6 iPhone/18.6 hw/iPhone15_3
+# FirebaseAuth.iOS/8.4.0 depollsoft.pitchperfect/2.0.3 iPhone/18.4 hw/iPhone14_6
 # but do not match domain names
 LONG_PREFIX_APP_ID_VERSION = RegexLazyIgnore(
-    r' (?P<name>[a-z]{6,}\.[\w\d\.\-]{6,})[;:/] ?(?P<version>[\d\.\-]+)\b'
+    r'[\s\(;:](?P<name>[a-z]{6,}\.[\w\.\-]{6,})[;:/] ?(?P<version>[\d\.\-]+)\b'
 )
 
 
