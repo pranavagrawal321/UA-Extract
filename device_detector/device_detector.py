@@ -52,7 +52,7 @@ from .utils import (
     only_numerals_and_punctuation,
     random_alphanumeric_string,
     uuid_like_name,
-    ua_hash,
+    ua_hash_key,
 )
 from .yaml_loader import normalized_regex_list
 
@@ -123,7 +123,8 @@ class DeviceDetector:
         skip_device_detection: bool = False,
         headers: dict[str, str] | None = None,
     ) -> 'DeviceDetector':
-        uah = ua_hash(user_agent.lower(), headers)
+        ua_key = f'{user_agent.lower()}-{skip_bot_detection}-{skip_device_detection}'
+        uah = ua_hash_key(ua_key, headers)
         if cached := DDCache['user_agents'].get(uah):
             cached.parsed = True
             return cached
@@ -154,7 +155,8 @@ class DeviceDetector:
         # Holds the useragent that should be parsed
         self.user_agent_lower = user_agent.lower()
         self.user_agent = clean_ua(user_agent, self.user_agent_lower)
-        self.ua_hash = ua_hash(self.user_agent_lower, headers)
+        ua_key = f'{self.user_agent_lower}-{skip_bot_detection}-{skip_device_detection}'
+        self.ua_hash = ua_hash_key(ua_key, headers)
         self.os: OS | None = None
         self.client: BaseClientParser | None = None
         self.device: BaseDeviceParser | None = None

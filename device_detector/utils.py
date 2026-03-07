@@ -102,7 +102,7 @@ INTEGER = RegexLazyIgnore(r"\d")
 MIN_WORD_LENGTH = 7
 
 
-def ua_hash(user_agent: str, headers: dict[str, str] | None = None) -> str:
+def ua_hash_key(user_agent: str, headers: dict[str, str] | None = None) -> str:
     """
     Return short hash of User Agent string for
     memory-efficient cache key.
@@ -115,7 +115,7 @@ def ua_hash(user_agent: str, headers: dict[str, str] | None = None) -> str:
     else:
         cache_key = user_agent
 
-    return blake2s(cache_key.encode('utf-8')).hexdigest()
+    return blake2s(cache_key.encode('utf-8')).hexdigest()[:12]
 
 
 def long_ua_no_punctuation(user_agent: str) -> bool:
@@ -478,7 +478,7 @@ def normalize_app_name(app_name: str) -> str:
 
 __all__ = (
     'calculate_dtype',
-    'ua_hash',
+    'ua_hash_key',
     'long_ua_no_punctuation',
     'only_numerals_and_punctuation',
     'mostly_numerals',
