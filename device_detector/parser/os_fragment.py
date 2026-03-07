@@ -1,3 +1,4 @@
+from typing import Any
 from . import BaseDeviceParser
 from ..lazy_regex import RegexLazyIgnore
 
@@ -7,7 +8,7 @@ class OSFragment(BaseDeviceParser):
         'local/osfragments.yml',
     ]
 
-    def yaml_to_list(self, yfile: str) -> list:
+    def yaml_to_list(self, yfile: str) -> list[dict[str, Any]]:
         """
         List of dicts like so:
 

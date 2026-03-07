@@ -13,6 +13,7 @@
 -extended/: null
 -user/: null
 .oast.: null
+/bot: null
 0-lighthouse: null
 0xabyssaldoesntexist: null
 1-lighthouse: null
@@ -47,7 +48,6 @@ adsbot-google-mobile: null
 adsbot-google: null
 adsbot-naver: null
 adsbot: null
-adscanner: null
 adstxtlab.com: null
 adwords-displayads: null
 adwords-express: null
@@ -92,6 +92,7 @@ asana: null
 ask jeeves/teoma: null
 askbot: null
 aspiegelbot: null
+assetnote: null
 awariobot: null
 awariorssbot: null
 awariosmartbot: null
@@ -175,7 +176,6 @@ cloudflare-amp: null
 cloudflare-diagnostics: null
 cloudflare-healthchecks: null
 cloudflare-smart-transit: null
-cloudflare-ssldetector: null
 cloudflare-traffic-manager: null
 cloudflarediagnostics: null
 cloudflareobservatory: null
@@ -198,15 +198,12 @@ cookiebot: null
 cortex: null
 cotoyogi: null
 crawl: null
-crawladebot: null
-crawldad: null
-crawler: null
-crawlson: null
-criteobot/: null
 crowdtanglebot: null
 crystalsemanticsbot: null
 csscheck: null
 curious george: null
+cybaaagent: null
+cybaabot: null
 cyberscan.io: null
 cypex.ai: null
 d-lighthouse: null
@@ -224,10 +221,10 @@ dataxu: null
 daum.net: null
 daumoa: null
 dazoobot: null
-deepcrawl.com: null
 deepnoc: null
 depspid: null
 detectify: null
+detector: null
 devin: null
 diffbot: null
 discobot: null
@@ -241,6 +238,7 @@ domaincodex.com: null
 domains project: null
 domainstatsbot: null
 domcopbot: null
+dormouse: null
 dotbot: null
 download demon: null
 ds9: null
@@ -250,13 +248,13 @@ duckduckbot: null
 duckduckgo-favicons-bot: null
 ducks.party: null
 duplexweb-google: null
+dvbot: null
 dynatracesynthetic: null
 e-lighthouse: null
 easybib autocite: null
 ecairn-grabber: null
 ecairn: null
 elastic/synthetics: null
-elb-healthchecker: null
 email exractor: null
 emailwolf: null
 embedly: null
@@ -292,15 +290,15 @@ fetch proxy: null
 fetch: null
 fetcher: null
 fever/: null
-fhms-its-research-scanner: null
 findlinks: null
 findxbot: null
-firecrawlagent: null
+firebase: null
 flipboardproxy: null
 flipboardrss: null
 fontradar: null
+formfinder: null
+forwardqr: null
 fragfinn: null
-freewebmonitoring sitechecker: null
 freshrss: null
 fuck-your-hp: null
 functionize: null
@@ -342,6 +340,7 @@ google-cloudvertexbot: null
 google-document-conversion: null
 google-extended: null
 google-hoteladsverifier: null
+google-ilp: null
 google-inspectiontool: null
 google-lens: null
 google-pagerenderer: null
@@ -383,6 +382,7 @@ gtmetrix: null
 h-lighthouse: null
 hackermention: null
 hakai: null
+hanaleibot: null
 hatena-bookmark: null
 hatena-favicon: null
 hatenabookmark: null
@@ -392,7 +392,8 @@ hello, world: null
 hells-net: null
 heritrix: null
 heurekabot-feed: null
-hgfalphaxcrawl: null
+honeygain: null
+hosting: null
 htdig: null
 htmlyse: null
 http banner detection (https://security.ipip.net): null
@@ -421,6 +422,7 @@ image proxy: null
 imageproxy: null
 imagesift: null
 img2dataset: null
+importdomain: null
 indexer: null
 inetdex-bot: null
 infotigerbot: null
@@ -434,7 +436,6 @@ intelx.io_bot: null
 internaetboten: null
 internetmeasurement: null
 intuitionsbot: null
-ioncrawl: null
 ip-guide.com: null
 iplabel: null
 ips-agent: null
@@ -471,10 +472,12 @@ lac_iaharvester: null
 laravel reaver: null
 larbin: null
 last-modified.com: null
+leadgen: null
 leak.info: null
 let's encrypt validation server: null
 libredtail: null
 linerbot: null
+link sleuth: null
 linkbloom: null
 linkchain: null
 linkdex.com: null
@@ -482,6 +485,7 @@ linkdexbot: null
 linkedinbot: null
 linkpadbot: null
 linkpreview: null
+linkverif: null
 linkwalker: null
 linux gnu (cow): null
 livejournal.com: null
@@ -527,13 +531,11 @@ mixnodecache: null
 mixrankbot: null
 mj12bot: null
 mnogosearch: null
-modatscanner: null
 mogimogi: null
 mojeekbot: null
 monitor: null
 monsidobot: null
 montastic-monitor: null
-moodlebot-linkchecker: null
 moosara.com: null
 morningscore: null
 mozilliqa: null
@@ -541,7 +543,6 @@ msnbot-newsblogs: null
 msnbot-udiscovery: null
 msnbot: null
 msrbot: null
-mtrobot: null
 muckrack: null
 munin: null
 muscatferret: null
@@ -556,7 +557,6 @@ netcraft ssl server survey: null
 netcraft web server survey: null
 netcraftsurveyagent: null
 netlyzer fastprobe: null
-netpeakcheckerbot: null
 netresearch: null
 netsystemsresearch: null
 nettrack: null
@@ -569,6 +569,7 @@ niggaballs: null
 niki-bot: null
 nimbostratus-bot: null
 nmap scripting engine: null
+node: null
 nodeping: null
 notebooklm: null
 notifyninja: null
@@ -593,7 +594,7 @@ onlineornot.com_bot: null
 onlyscans: null
 opengraph.io: null
 orangebot: null
-osalphaxcrawl: null
+ortc: null
 oszkbot: null
 overcast/: null
 owler: null
@@ -610,6 +611,7 @@ panscient.com: null
 paperlibot: null
 paqlebot: null
 parse.ly scraper: null
+parser: null
 paypal ipn: null
 pdrl.fm: null
 perplexity-user: null
@@ -624,7 +626,6 @@ pingdom.com: null
 pingdomtms: null
 pinterest-: null
 pinterest/: null
-pinterestbot/: null
 piplbot: null
 plesk screenshot bot: null
 plukkie: null
@@ -670,13 +671,14 @@ research: null
 resolver: null
 revolt: null
 riddler: null
-robots: null
+robot: null
 robozilla: null
 rocketmonitor: null
 rocketmonitorbot: null
 rogerbot: null
 roi hunter: null
 root slut: null
+rsiteauditor: null
 rssradio: null
 ruby, twurly v: null
 ruxitsynthetic: null
@@ -698,9 +700,12 @@ search.marginalia.nu: null
 searchbot: null
 searcher: null
 searchexpress: null
+searchmonkey: null
 searchsight: null
 sectigo dcv: null
 secureurl: null
+securityheaders: null
+secweb: null
 seekport: null
 semaltbot: null
 semantic-visions: null
@@ -716,13 +721,11 @@ seoengworldbot: null
 seokicks: null
 seolyt: null
 seolytbot: null
-seoscanners.net: null
 serendeputybot: null
 serpreputationmanagementagent: null
 serpstatbot: null
 server density service monitoring: null
 seznam screenshot-generator: null
-seznam-zbozi-robot: null
 seznambot: null
 seznamemailproxy: null
 sffeedreader: null
@@ -770,13 +773,13 @@ sputnikimagebot: null
 ssl labs: null
 sslshed: null
 startmebot: null
-startpagina-linkchecker: null
 statista.com: null
 statonlinerubot: null
 statuscake: null
 steamchaturllookup: null
 storebot-google: null
 stractbot: null
+studybot: null
 sublinq: null
 substackcontentfetch: null
 suggestbot: null
@@ -808,7 +811,6 @@ thesafeinternetsearch: null
 thesafeinternetxsearch: null
 thesafexinternetsearch: null
 thesafexinternetxsearch: null
-thinkbot/: null
 thinkchaos/: null
 thousandeyes: null
 tigerbot: null
@@ -856,23 +858,22 @@ validbot: null
 vercelbot: null
 verifybot: null
 verity/: null
+vertexwp: null
 veryhip: null
 via ggpht.com googleimageproxy: null
 via secureurl.fwdcdn.com: null
 viberurldownloader: null
-vkrobot: null
 voilabot: null
 vortex/: null
-vu-server-health-scanner: null
 vuhuvbot: null
 vuhuvrbt: null
 w-lighthouse: null
 w3c-checklink: null
 w3c-mobileok: null
-w3c_i18n-checker: null
 w3c_unicorn: null
 w3c_validator: null
 wappalyzer: null
+wb-filter: null
 wdg_validator: null
 webauthn adoption: null
 webdatastats: null
@@ -889,7 +890,6 @@ wesee: null
 wevikabot: null
 whatcms: null
 whatsmyip.org: null
-wheregoes.com redirect checker: null
 who.is: null
 wibybot: null
 wikido: null
@@ -900,6 +900,7 @@ woorankreview: null
 wordpress.com mshots: null
 wordpress: null
 wordup: null
+worker: null
 workona: null
 wotbox: null
 wp.com feedbot: null
@@ -948,7 +949,6 @@ yandexmetrika: null
 yandexmobile: null
 yandexnews: null
 yandexonto: null
-yandexpagechecker: null
 yandexpartner: null
 yandexrca: null
 yandexrenderresourcesbot: null
@@ -964,6 +964,7 @@ yandexvertis: null
 yandexvideo: null
 yandexwebmaster: null
 yeti: null
+yoozbot: null
 yottaamonitor: null
 youbot: null
 youdaobot: null

@@ -76,7 +76,7 @@ class Browser(BaseClientParser):
     FAMILY_FROM_ABBREV = FAMILY_FROM_ABBREV
     MOBILE_ONLY_BROWSERS = MOBILE_ONLY_BROWSERS
 
-    def check_all_regexes(self) -> bool | list:
+    def check_all_regexes(self) -> bool | list[str]:
         if check_all := super().check_all_regexes():
             return check_all
         return self.is_ios_fragment()
@@ -205,7 +205,7 @@ class Browser(BaseClientParser):
             self.ua_data['short_name'] = ua_short_name
 
     def short_name(self) -> str:
-        return self.ua_data.get('short_name', None)
+        return self.ua_data.get('short_name') or ''
 
     def set_engine(self) -> None:
         """

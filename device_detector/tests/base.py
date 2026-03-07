@@ -60,6 +60,10 @@ class Base(unittest.TestCase):
             second = None
         elif isinstance(second, StrEnum):
             second = second.value
+
+        if isinstance(first, str) and isinstance(second, int):
+            second = str(second)
+
         # Count all falsy types as equal
         if not first and (not second or second == '0'):
             return

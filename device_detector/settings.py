@@ -8,7 +8,7 @@ BOUNDED_REGEX = r'(?:^|[^A-Z0-9_-]|[^A-Z0-9-]_|sprd-|MZ-)(?:{})'
 MAX_CACHE_SIZE = 1024
 
 
-class LRUDict(OrderedDict):
+class LRUDict(OrderedDict):  # type: ignore[type-arg]
     """
     A dict that can discard least-recently-used items via maximum capacity.
 
@@ -50,8 +50,8 @@ class LRUDict(OrderedDict):
         self.purge()
 
 
-class Cache(dict):
-    base: dict = {
+class Cache(dict):  # type: ignore[type-arg]
+    base: dict = {  # type: ignore[type-arg]
         'app_details': {},
         'regexes': {},
         'corasick': {},

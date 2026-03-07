@@ -64,7 +64,7 @@ class Device(BaseDeviceParser):
         'upstream/device/mobiles.yml',
     ]
 
-    def check_all_regexes(self) -> bool | list:
+    def check_all_regexes(self) -> bool | list[str]:
         # Match relatively generic UAs like:
         # UCWEB/2.0 (MIDP-2.0; U; zh-CN; IQ4406) U2/1.0.0 UCBrowser/3.4.3.532 U2/1.0.0 Mobile
         # UCWEB/2.0 (Linux; U; Opera Mini/7.1.32052/30.3697; en-US; LG-E405) U2/1.0.0 UCBrowser/8.8.1.359 Mobile
@@ -91,7 +91,7 @@ class Device(BaseDeviceParser):
 
         return self.user_agent_lower == 'msdw'
 
-    def has_user_agent_client_hints_fragment(self):
+    def has_user_agent_client_hints_fragment(self) -> bool:
         if UA_CLIENT_HINTS_FRAGMENT.search(self.user_agent):
             if not TELEGRAM_ANDROID.search(self.user_agent):
                 return True

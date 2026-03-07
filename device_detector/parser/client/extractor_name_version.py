@@ -19,7 +19,7 @@ class NameVersionExtractor(GenericClientParser):
 
     __slots__ = ()
 
-    def parse_name_version_pairs(self) -> dict:
+    def parse_name_version_pairs(self) -> dict[str, str]:
         """
         Check all name/version pairs for most interesting values
         """
@@ -104,7 +104,7 @@ def strip_unwanted_suffixes(name: str) -> str:
     Remove unwanted suffixes, such as "ShareExtension" or "WidgetExtension".
     """
     if matched := EXTRACT_SUFFIXES.match(name):
-        return matched.group(1)
+        return str(matched.group(1))
     return name
 
 

@@ -102,7 +102,7 @@ INTEGER = RegexLazyIgnore(r"\d")
 MIN_WORD_LENGTH = 7
 
 
-def ua_hash(user_agent: str, headers: dict | None = None) -> str:
+def ua_hash(user_agent: str, headers: dict[str, str] | None = None) -> str:
     """
     Return short hash of User Agent string for
     memory-efficient cache key.

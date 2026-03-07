@@ -25,7 +25,7 @@ MIPS_REGEX = RegexLazyIgnore(BOUNDED_REGEX.format('mips'))
 SPARK_REGEX = RegexLazyIgnore(BOUNDED_REGEX.format('sparc64'))
 SUPERH_REGEX = RegexLazyIgnore(BOUNDED_REGEX.format('sh4'))
 WINDOWS_REGEX = RegexLazyIgnore(
-    BOUNDED_REGEX.format('64-?bit|WOW64|(?:Intel)?x64|WINDOWS_64|win64|.*amd64|.*x86_?64')
+    BOUNDED_REGEX.format('64-?bit|WOW64|(?:Intel)?x64|WINDOWS_64|win64|IRIX;?64|.*amd64|.*x86_?64')
 )
 x86_REGEX = RegexLazyIgnore(BOUNDED_REGEX.format('.*32bit|.*win32|(?:i[0-9]|x)86|i86pc'))
 
@@ -48,17 +48,17 @@ class OS(Parser):
         return self.family() in self.DESKTOP_OS
 
     def short_name(self) -> str:
-        return self.ua_data.get('short_name', '')
+        return self.ua_data.get('short_name') or ''
 
     def family(self) -> str:
-        return self.ua_data.get('family', '')
+        return self.ua_data.get('family') or ''
 
     def is_known(self) -> bool:
         if self.short_name() == self.UNKNOWN:
             return False
         return super().is_known()
 
-    def check_all_regexes(self) -> bool | list:
+    def check_all_regexes(self) -> bool | list[str]:
         if check_all := super().check_all_regexes():
             return check_all
         return self.is_ios_fragment()
@@ -107,13 +107,13 @@ class OS(Parser):
         os_from_ua = self.parse_os_from_useragent()
         os_from_hints = self.parse_os_from_client_hints()
 
-        name_from_ua = os_from_ua.get('name')
-        short_name_from_ua = os_from_ua.get('short_name')
-        family_from_ua = os_from_ua.get('family')
-        version_from_ua = os_from_ua.get('version')
+        name_from_ua = os_from_ua.get('name') or ''
+        short_name_from_ua = os_from_ua.get('short_name') or ''
+        family_from_ua = os_from_ua.get('family') or ''
+        version_from_ua = os_from_ua.get('version') or ''
 
         if os_from_hints:
-            name = os_from_hints.get('name')
+            name = os_from_hints.get('name') or ''
             short = os_from_hints.get('short_name') or short_name_from_ua
             family = os_from_hints.get('family') or family_from_ua
             version = os_from_hints.get('version') or ''
@@ -201,7 +201,7 @@ class OS(Parser):
             'family': family,
         }
 
-    def parse_os_from_client_hints(self) -> dict:
+    def parse_os_from_client_hints(self) -> dict[str, str]:
         """
         Returns the OS that can be safely detected from client hints
         """
@@ -260,7 +260,7 @@ class OS(Parser):
 
         return os_data
 
-    def parse_os_from_useragent(self) -> dict:
+    def parse_os_from_useragent(self) -> dict[str, str | None]:
         """
         Returns the OS that can be detected from useragent
         """

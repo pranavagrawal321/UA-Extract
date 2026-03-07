@@ -1,3 +1,4 @@
+from typing import Any
 from . import BaseDeviceParser
 from ...lazy_regex import RegexLazyIgnore
 
@@ -8,7 +9,7 @@ class VendorFragment(BaseDeviceParser):
         'upstream/vendorfragments.yml',
     ]
 
-    def yaml_to_list(self, yfile: str) -> list:
+    def yaml_to_list(self, yfile: str) -> list[dict[str, Any]]:
         """
         List of dicts like so:
 
