@@ -1,6 +1,7 @@
 requires-python = ">=3.11"
 
 [tool.mypy]
+strict = true
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true
@@ -9,9 +10,21 @@ warn_unused_configs = true
 disallow_incomplete_defs = true
 show_error_context = true
 follow_imports = 'silent'
-
+disable_error_code = [
+    "no-any-return",
+    "comparison-overlap",
+]
 exclude = [
     "tests/",
+]
+
+[tool.bandit]
+exclude_dirs = [
+    "*/tests/*",
+]
+skips = [
+    "B110",
+    "B112",
 ]
 
 [tool.ruff]

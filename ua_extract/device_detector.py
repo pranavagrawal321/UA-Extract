@@ -7,7 +7,7 @@ except ImportError:
 from .lazy_regex import RegexLazy
 from .enums import DeviceType
 
-from .parser import (
+from .parser import (  # type: ignore[attr-defined]
     BaseClientParser,
     BaseDeviceParser,
     ClientHints,
@@ -52,7 +52,7 @@ from .utils import (
     only_numerals_and_punctuation,
     random_alphanumeric_string,
     uuid_like_name,
-    ua_hash,
+    ua_hash_key,
 )
 from .yaml_loader import normalized_regex_list
 
@@ -123,8 +123,9 @@ class DeviceDetector:
         skip_device_detection: bool = False,
         headers: dict[str, str] | None = None,
     ) -> 'DeviceDetector':
-        uah = ua_hash(user_agent.lower(), headers)
-        if cached := DDCache['user_agents'].get(uah, None):
+        ua_key = f'{user_agent.lower()}-{skip_bot_detection}-{skip_device_detection}'
+        uah = ua_hash_key(ua_key, headers)
+        if cached := DDCache['user_agents'].get(uah):
             cached.parsed = True
             return cached
 
@@ -138,7 +139,7 @@ class DeviceDetector:
         skip_bot_detection: bool = False,
         skip_device_detection: bool = False,
         headers: dict[str, str] | None = None,
-    ):
+    ) -> None:
         """
 
         Args:
@@ -154,7 +155,8 @@ class DeviceDetector:
         # Holds the useragent that should be parsed
         self.user_agent_lower = user_agent.lower()
         self.user_agent = clean_ua(user_agent, self.user_agent_lower)
-        self.ua_hash = ua_hash(self.user_agent_lower, headers)
+        ua_key = f'{self.user_agent_lower}-{skip_bot_detection}-{skip_device_detection}'
+        self.ua_hash = ua_hash_key(ua_key, headers)
         self.os: OS | None = None
         self.client: BaseClientParser | None = None
         self.device: BaseDeviceParser | None = None
@@ -170,7 +172,7 @@ class DeviceDetector:
 
         self.skip_bot_detection = skip_bot_detection
         self.skip_device_detection = skip_device_detection
-        self.all_details: dict = {'normalized': ''}
+        self.all_details: dict = {'normalized': ''}  # type: ignore[type-arg]
         self.headers = headers or {}
         self.client_hints = ClientHints.new(headers) if headers else None
         self._normalized_regex_list = normalized_regex_list(self.fixture_files)
@@ -237,8 +239,7 @@ class DeviceDetector:
         that is of no use outside the application itself. Remove such information to present a
         cleaner UA string with fewer duplicates
         """
-        normalized = self.all_details.get('normalized', '')
-        if normalized:
+        if normalized := self.all_details.get('normalized'):
             return normalized
 
         if self.is_digit():
@@ -436,7 +437,7 @@ class DeviceDetector:
     def engine(self) -> str:
         if 'browser' not in self.client_type():
             return ''
-        return self.all_details.get('client', {}).get('engine', '')
+        return self.all_details.get('client', {}).get('engine') or ''
 
     def is_mobile(self) -> bool:
         """
@@ -469,10 +470,10 @@ class DeviceDetector:
         return self.device_type() == DeviceType.FeaturePhone
 
     def client_name(self) -> str:
-        return self.all_details.get('client', {}).get('name', '')
+        return self.all_details.get('client', {}).get('name') or ''
 
     def client_version(self) -> str:
-        return self.all_details.get('client', {}).get('version', '')
+        return self.all_details.get('client', {}).get('version') or ''
 
     def client_application_id(self) -> str:
         """
@@ -482,19 +483,19 @@ class DeviceDetector:
         AcuityApp/5.14.0 (com.acuityscheduling.app.ios; build:1686757700; iPhone; iOS 17.1.1) SquarespaceMobileiOS
         """
         client = self.all_details.get('client', {})
-        return client.get('app_id', '') or client.get('secondary_client', {}).get('app_id', '')
+        return client.get('app_id', '') or client.get('secondary_client', {}).get('app_id') or ''
 
     def client_type(self) -> str:
-        return self.all_details.get('client', {}).get('type', '')
+        return self.all_details.get('client', {}).get('type') or ''
 
     def secondary_client_name(self) -> str:
-        return self.all_details.get('client', {}).get('secondary_client', {}).get('name', '')
+        return self.all_details.get('client', {}).get('secondary_client', {}).get('name') or ''
 
     def secondary_client_version(self) -> str:
-        return self.all_details.get('client', {}).get('secondary_client', {}).get('version', '')
+        return self.all_details.get('client', {}).get('secondary_client', {}).get('version') or ''
 
     def secondary_client_type(self) -> str:
-        return self.all_details.get('client', {}).get('secondary_client', {}).get('type', '')
+        return self.all_details.get('client', {}).get('secondary_client', {}).get('type') or ''
 
     def preferred_client_name(self) -> str:
         """
@@ -519,7 +520,7 @@ class DeviceDetector:
 
         Should work, even if skip_device_detection=True
         """
-        return self.all_details.get('device', {}).get('type', DeviceType.Unknown)
+        return self.all_details.get('device', {}).get('type') or DeviceType.Unknown
 
     def device_model(self) -> str:
         """
@@ -528,14 +529,13 @@ class DeviceDetector:
         client_hints_model = self.client_hints and self.client_hints.model or ''
         if self.skip_device_detection:
             return client_hints_model
-        return self.all_details.get('device', {}).get('model', client_hints_model)
+        return self.all_details.get('device', {}).get('model') or client_hints_model
 
     def device_brand(self) -> str:
         if self.skip_device_detection:
             return ''
 
-        brand = self.all_details.get('device', {}).get('brand', '')
-        if brand:
+        if brand := self.all_details.get('device', {}).get('brand'):
             return brand
 
         # Assume all devices running iOS / macOS are from Apple

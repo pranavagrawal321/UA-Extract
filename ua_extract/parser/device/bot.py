@@ -25,7 +25,7 @@ class Bot(BaseDeviceParser):
         'upstream/bots.yml',
     ]
 
-    def check_all_regexes(self) -> bool | list:
+    def check_all_regexes(self) -> bool | list[str]:
         if check_all := super().check_all_regexes():
             return check_all
         return self.user_agent_lower in GENERIC_BOT_UAS

@@ -1,5 +1,6 @@
 from .base import BaseDeviceParser
 from ua_extract.enums import DeviceType
+from typing import Any
 from ...lazy_regex import RegexLazyIgnore
 from ...settings import BOUNDED_REGEX, DDCache
 
@@ -14,7 +15,7 @@ class BaseTvParser(BaseDeviceParser):
         '_is_shell_tv',
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
         super().__init__(*args, **kwargs)
 
         self._is_hbbtv: bool | None = None
@@ -52,7 +53,7 @@ class HbbTv(BaseTvParser):
     __slots__ = ()
 
     @property
-    def regex_list(self) -> list:
+    def regex_list(self) -> list[dict[str, Any]]:
         cache_key = 'tv_regexes'
         if regexes := DDCache.get(cache_key, []):
             return regexes

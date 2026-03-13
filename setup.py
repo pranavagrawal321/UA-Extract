@@ -39,6 +39,12 @@ setup(
     package_dir={'': '.'},
     license='MIT',
     zip_safe=True,
+    keywords=[
+        "user agent",
+        "app detection",
+        "device detection",
+        "client hints",
+    ],
     include_package_data=True,
     license_files=['LICENSE'],
     package_data={

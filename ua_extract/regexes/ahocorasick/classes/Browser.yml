@@ -18,7 +18,6 @@ Words:
 - .browser/
 - ; fa-ir)
 - ; fa-ir;
-- smarthublink
 - _browser/
 - aftlft962x3
 - airwatchbrowser
@@ -170,6 +169,7 @@ Words:
 - locationbrowser
 - lunascape
 - managedbrowser
+- maple2
 - maui browser
 - maui-browser
 - maui_browser
@@ -219,6 +219,7 @@ Words:
 - securebrowser
 - servo/
 - slbrowser
+- smarthublink
 - sparrow/
 - surfbrowser
 - surfybrowser

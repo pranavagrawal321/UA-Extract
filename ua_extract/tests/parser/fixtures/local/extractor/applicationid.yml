@@ -218,3 +218,13 @@
   client:
     app_id: net.avast.osx.secureline.avastsecurelinehelper
     pretty_name: Avast Antivirus
+-
+  user_agent: Back Market/5.12.1 (com.backmarket; build:202508152023.46674; iOS 26.0.0) Alamofire/5.10.2
+  client:
+    app_id: com.backmarket
+    pretty_name: ''
+-
+  user_agent: Thrive/3.99.0 (com.thrivemarket; build:3.99.0.0; iOS 18.5.0) Alamofire/5.9.1
+  client:
+    app_id: com.thrivemarket
+    pretty_name: ''

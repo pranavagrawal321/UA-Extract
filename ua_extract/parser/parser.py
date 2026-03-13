@@ -1,4 +1,5 @@
 import regex
+from typing import Any
 
 try:
     from typing import Self
@@ -73,19 +74,19 @@ class Parser(RegexLoader):
         self,
         ua: str,
         client_hints: ClientHints | None,
-        os_details: dict | None = None,
+        os_details: dict[str, str] | None = None,
     ) -> None:
         super().__init__()
 
         self.user_agent = ua
         self.user_agent_lower = ua.lower()
-        self.ua_data: dict = {}
+        self.ua_data: dict[str, Any] = {}
         self.app_name = ''
         self.app_name_no_punctuation = ''
         self.matched_regex = None
         self.app_version = ''
         self.known = False
-        self.secondary_client: dict = {}
+        self.secondary_client: dict[str, str] = {}
         self.client_hints = client_hints
         self.ch_client_data = client_hints.client_data() if client_hints else {}
         self.os_details = os_details or {}
@@ -100,7 +101,7 @@ class Parser(RegexLoader):
             self._is_ios_fragment = IPHONE_ONLY_UA.match(self.user_agent_lower) is not None
         return self._is_ios_fragment
 
-    def check_all_regexes(self) -> bool | list:
+    def check_all_regexes(self) -> bool | list[str]:
         if not (corasick := self.load_ahocorasick_patterns()):
             return True
         return corasick.find_matches_as_strings(self.user_agent_lower)

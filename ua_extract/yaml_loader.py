@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TypedDict
+from typing import Any, TypedDict
 import yaml
 import ahocorasick_rs
 from pathlib import Path
@@ -34,7 +34,7 @@ class RegexLoader:
         return self.__class__.__name__
 
     @staticmethod
-    def load_from_yaml(yfile: str) -> dict | list:
+    def load_from_yaml(yfile: str) -> dict[str, Any] | list[dict[str, Any]]:
         """
         Load yaml from regexes directory, or extract from the egg
         """
@@ -56,7 +56,7 @@ class RegexLoader:
 
             return {}
 
-    def yaml_to_list(self, yfile: str) -> list[dict]:
+    def yaml_to_list(self, yfile: str) -> list[dict[str, Any]]:
         """
         Override method on subclasses if yaml format varies.
 
@@ -74,7 +74,7 @@ class RegexLoader:
         return reg_list
 
     @property
-    def regex_list(self) -> list[dict]:
+    def regex_list(self) -> list[dict[str, Any]]:
         if (regexes := DDCache['regexes'].get(self.cache_name)) is not None:
             return regexes
 
@@ -112,19 +112,19 @@ class RegexLoader:
             all_corasick_words.update(set(manual.get('Words') or set()))
 
             if words := set(self.load_from_yaml(ac_fixture)):
-                all_corasick_words.update(words)
+                all_corasick_words.update(words)  # type: ignore[arg-type]
 
         ac = ahocorasick_rs.AhoCorasick(all_corasick_words) if all_corasick_words else None
         DDCache['corasick'][self.cache_name] = ac
 
         return ac
 
-    def load_manually_defined_words(self):
+    def load_manually_defined_words(self) -> dict[str, list[str]]:
         """
         Every Parser or Detector class can have a set of words
         and Word exclusions that are manually defined.
         """
-        return self.load_from_yaml(f'regexes/ahocorasick/classes/{self.cache_name}.yml') or {}
+        return self.load_from_yaml(f'regexes/ahocorasick/classes/{self.cache_name}.yml') or {}  # type: ignore[return-value]
 
     def clear_cache(self) -> Self:
         """
@@ -149,7 +149,8 @@ def app_pretty_names_types_data() -> dict[str, AppNameType]:
     individual regexes for each app.
     """
     cache_key = 'app_details'
-    if appdetails := DDCache.get(cache_key, {}):
+    appdetails = DDCache.get(cache_key) or {}
+    if appdetails:
         return appdetails
 
     regex_loader = RegexLoader()
@@ -174,7 +175,7 @@ def app_pretty_names_types_data() -> dict[str, AppNameType]:
         all_app_details[dtype] = regex_loader.yaml_to_list(fixture)
 
     # convert uaname value to dict key and remove spaces and add that key as well.
-    generalized_details: dict = defaultdict(dict)
+    generalized_details: dict = defaultdict(dict)  # type: ignore[type-arg]
     for dtype, entries in all_app_details.items():
         for entry in entries:
             name = entry['name']
@@ -208,9 +209,10 @@ def app_pretty_names_types_data() -> dict[str, AppNameType]:
     return generalized_details
 
 
-def normalized_regex_list(fixture_files: list[str]) -> list:
+def normalized_regex_list(fixture_files: list[str]) -> list[dict[str, Any]]:
     cache_key = 'normalize_regexes'
-    if regexes := DDCache.get(cache_key, []):
+    regexes = DDCache.get(cache_key) or []
+    if regexes:
         return regexes
 
     regex_loader = RegexLoader()

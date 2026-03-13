@@ -20,8 +20,8 @@ class ClientHintsHeader(TypedDict):
     platform: str
     platform_version: str
     full_version: str
-    full_version_list: str | dict
-    mobile: bool
+    full_version_list: str | dict[str, str]
+    mobile: str
     architecture: str
     bitness: str
     model: str
@@ -84,14 +84,14 @@ class ClientHints:
         platform: str,
         platform_version: str,
         full_version: str,
-        full_version_list: str | dict,
-        mobile: bool,
+        full_version_list: str | dict[str, str],
+        mobile: str,
         architecture: str,
         bitness: str,
         model: str,
         form_factors: set[str],
         app: str,
-    ):
+    ) -> None:
         # fmt: off
         self.platform = platform                     # Sec-CH-UA-Platform
         self.platform_version = platform_version     # Sec-CH-UA-Platform-Version
@@ -108,8 +108,8 @@ class ClientHints:
         self.headers: dict[str, str] = {}
         self.client_hints_map: dict[str, str] = {}
 
-        self._browser_data: dict | None = None
-        self._client_data: dict | None = None
+        self._browser_data: dict[str, str] | None = None
+        self._client_data: dict[str, str] | None = None
         self._client_name = ''
         self.app_pretty_names = app_pretty_names_types_data()
 
@@ -125,7 +125,7 @@ class ClientHints:
         )
 
     @classmethod
-    def new(cls, headers: dict) -> 'ClientHints':
+    def new(cls, headers: dict[str, str]) -> 'ClientHints':
         """
         Generate class from HTTP headers.
         """
@@ -134,7 +134,7 @@ class ClientHints:
             platform_version='',
             full_version='',
             full_version_list='',
-            mobile=False,
+            mobile='',
             architecture='',
             bitness='',
             model='',
@@ -209,13 +209,14 @@ class ClientHints:
                     params['full_version_list'] = value
 
                 case 'brands':
-                    if not params['full_version_list']:
+                    if not params['full_version_list'] and isinstance(value, list):
                         params['full_version_list'] = from_ch_list(value)
 
                 # use this only if no other header already set the list
                 case 'fullversionlist':
                     if not params['full_version_list'] or 'brands' in headers:
-                        params['full_version_list'] = from_ch_list(value)
+                        if isinstance(value, list):
+                            params['full_version_list'] = from_ch_list(value)
 
                 case (
                     'sec-ch-ua'
@@ -341,7 +342,7 @@ class ClientHints:
             return DeviceType.Smartphone
         return None
 
-    def client_data(self) -> dict:
+    def client_data(self) -> dict[str, str]:
         """
         Get dictionary of all client data that can
         be extracted from client hints headers.
@@ -366,7 +367,7 @@ class ClientHints:
 
         return self._client_data or {}
 
-    def os_data(self) -> dict:
+    def os_data(self) -> dict[str, str]:
         """
         Get dictionary of all OS data that can
         be extracted from client hints headers.
@@ -381,7 +382,7 @@ class ClientHints:
         return ch_data
 
 
-def from_ch_ua(ua: str | dict) -> dict:
+def from_ch_ua(ua: str | dict[str, str]) -> dict[str, str]:
     """
     Extract values from Client Hint User Agent.
 
@@ -402,7 +403,7 @@ def from_ch_ua(ua: str | dict) -> dict:
     return ch_map
 
 
-def from_ch_list(ch: list) -> dict:
+def from_ch_list(ch: list[dict[str, str]]) -> dict[str, str]:
     """
     Extract values from Client Hints when it's list of dicts.
 
@@ -423,7 +424,7 @@ def from_ch_list(ch: list) -> dict:
     return ch_map
 
 
-def extract_name_from_hints(hints: dict) -> str:
+def extract_name_from_hints(hints: dict[str, str]) -> str:
     """
     Extract most specific name from client hints.
     """

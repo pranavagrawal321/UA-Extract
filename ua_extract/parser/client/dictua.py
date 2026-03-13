@@ -21,7 +21,7 @@ class DictUA(BaseClientParser):
 
     __slots__ = ()
 
-    def load_via_json(self) -> dict:
+    def load_via_json(self) -> dict[str, str]:
         try:
             # sanity check - really shouldn't need to cast to dict.
             # at least 1 UA doesn't crash json.loads but remains a string.
@@ -29,14 +29,14 @@ class DictUA(BaseClientParser):
         except Exception:
             return {}
 
-    def parse_key_value_pairs(self) -> dict:
+    def parse_key_value_pairs(self) -> dict[str, str]:
         # AppName=iOSProApp;AppId=3;Platform=iOS;Model=iPad Pro 9.7-inch (Wi-Fi Cellular);OSVersion=12.0;Carrier=iPad;AppVersion=3.27.0.4
         try:
             return dict(item.strip().split("=") for item in self.user_agent.split(";"))
         except Exception:
             return {}
 
-    def ua_as_dict(self) -> Optional[dict]:
+    def ua_as_dict(self) -> Optional[dict[str, str]]:
         valid_json = self.load_via_json()
         if valid_json:
             return valid_json
