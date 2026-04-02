@@ -2,9 +2,9 @@ from typing import Optional
 from device_detector.enums import AppType
 
 try:
-    import rapidjson as json
+    import orjson as _json
 except ImportError:
-    import json
+    import json as _json  # type: ignore[no-redef]
 
 from . import BaseClientParser
 from ...utils import calculate_dtype
@@ -25,7 +25,7 @@ class DictUA(BaseClientParser):
         try:
             # sanity check - really shouldn't need to cast to dict.
             # at least 1 UA doesn't crash json.loads but remains a string.
-            return dict(json.loads(self.user_agent))
+            return dict(_json.loads(self.user_agent))
         except Exception:
             return {}
 
