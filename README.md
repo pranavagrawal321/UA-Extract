@@ -18,10 +18,6 @@ However, it uses the original regex yaml files, to benefit from updates and pull
 
 `pip install device_detector`
 
-## Performance Options
-
-[CSafeLoader](http://pyyaml.org/wiki/PyYAMLDocumentation) is used if pyyaml is configured `--with-libyaml`.
-
 ## Usage
 ### DeviceDetector class
 

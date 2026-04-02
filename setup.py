@@ -40,8 +40,8 @@ setup(
     },
     install_requires=[
         'ahocorasick-rs',
-        'pyyaml',
         'regex',
+        'yaml-rs',
         'backports.strenum; python_version <= "3.10"',
         'typing_extensions; python_version <= "3.10"',
     ],

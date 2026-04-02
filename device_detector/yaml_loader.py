@@ -1,18 +1,13 @@
 from collections import defaultdict
 from typing import Any, TypedDict
-import yaml
 import ahocorasick_rs
 from pathlib import Path
+import yaml_rs
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
-
-try:
-    from yaml import CSafeLoader as SafeLoader
-except ImportError:
-    from yaml import SafeLoader  # type: ignore[assignment]
 
 import device_detector
 from .lazy_regex import RegexLazyIgnore
@@ -40,11 +35,11 @@ class RegexLoader:
         yml_file_path = f'{ROOT}/{yfile}'
         if Path(yml_file_path).exists():
             with open(yml_file_path, 'r', encoding="utf-8") as yf:
-                return yaml.load(yf, SafeLoader)
+                return yaml_rs.loads(yf.read())
 
         try:
             yfile = f'device_detector/{yfile}'
-            return yaml.load(device_detector.__loader__.get_data(yfile), SafeLoader)  # type: ignore[union-attr]
+            return yaml_rs.loads(device_detector.__loader__.get_data(yfile))  # type: ignore[union-attr]
         except OSError:
             return []
 
