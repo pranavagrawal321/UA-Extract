@@ -76,14 +76,30 @@ This version may include:
 
 #### Install from GitHub
 
+- With Python
+
 ```bash
-pip install git+https://github.com/pranavagrawal321/UA-Extract.git
+pip install "ua_extract @ git+https://github.com/pranavagrawal321/UA-Extract.git"
+```
+
+- With Python + Rust
+
+```bash
+pip install "ua_extract[rust] @ git+https://github.com/pranavagrawal321/UA-Extract.git"
 ```
 
 #### Upgrade an existing GitHub install
 
+- With Python
+
 ```bash
-pip install --upgrade git+https://github.com/pranavagrawal321/UA-Extract.git
+pip install --upgrade "ua_extract @ git+https://github.com/pranavagrawal321/UA-Extract.git"
+```
+
+- With Python + Rust
+
+```bash
+pip install --upgrade "ua_extract[rust] @ git+https://github.com/pranavagrawal321/UA-Extract.git"
 ```
 
 ---
