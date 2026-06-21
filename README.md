@@ -46,8 +46,16 @@ This is not a line-by-line port of the original PHP implementation. The parsing 
 
 ### Stable Release (PyPI)
 
+- With Python
+
 ```bash
 pip install ua_extract
+```
+
+- With Python + Rust
+
+```bash
+pip install "ua_extract[rust]"
 ```
 
 ---
@@ -103,7 +111,7 @@ By default, this updates files using **Git sparse checkout** from the Matomo rep
 #### CLI Options
 
 | Option     | Description                           |
-| ---------- | ------------------------------------- |
+|------------|---------------------------------------|
 | `--path`   | Destination directory for regex files |
 | `--repo`   | Git repository URL                    |
 | `--branch` | Git branch (Git method only)          |
@@ -201,20 +209,20 @@ ua_extract parse \
   "device_brand": "Apple",
   "device_model": "iPhone",
   "device_type": "smartphone",
-  "secondary_client_name": "EtsyInc",
-  "secondary_client_type": "generic",
-  "secondary_client_version": "5.22",
-  "bot_name": null,
+  "secondary_client_name": "",
+  "secondary_client_type": "",
+  "secondary_client_version": "",
+  "bot_name": "",
   "client_name": "Mobile Safari",
   "client_type": "browser",
-  "client_application_id": null,
+  "client_application_id": "com.example.app",
   "is_television": false,
   "uses_mobile_browser": true,
   "is_mobile": true,
   "is_desktop": false,
   "is_feature_phone": false,
   "preferred_client_name": "Mobile Safari",
-  "preferred_client_version": "605.1.15",
+  "preferred_client_version": "",
   "preferred_client_type": "browser"
 }
 ```
@@ -232,7 +240,7 @@ ua_extract parse \
 The following table describes every field returned by the CLI and Python API.
 
 | Field                      | Type                | Description                                    |
-| -------------------------- | ------------------- | ---------------------------------------------- |
+|----------------------------|---------------------|------------------------------------------------|
 | `is_bot`                   | bool                | Whether the user agent is identified as a bot  |
 | `bot_name`                 | str \| null         | Name of the bot, if detected                   |
 | `os_name`                  | str \| null         | Operating system name                          |

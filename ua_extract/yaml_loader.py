@@ -1,19 +1,49 @@
 from collections import defaultdict
 from typing import Any, TypedDict
-import yaml
-import ahocorasick_rs
 from pathlib import Path
 import warnings
+
+try:
+    import ahocorasick_rs
+
+    IS_RUST = True
+    ACAutomaton = ahocorasick_rs.AhoCorasick
+
+except ImportError:
+    from ahocorapy.keywordtree import KeywordTree
+
+    IS_RUST = False
+
+    class ACAutomaton:
+        def __init__(self, words):
+            self._tree = KeywordTree()
+
+            for word in words:
+                self._tree.add(word)
+
+            self._tree.finalize()
+
+        def find_matches_as_strings(self, text):
+            return [match[0] for match in self._tree.search_all(text)]
+
+
+try:
+    import yaml_rs
+
+    def yaml_load(x):
+        return yaml_rs.loads(x)
+
+except ImportError:
+    import yaml
+
+    def yaml_load(x):
+        return yaml.safe_load(x)
+
 
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
-
-try:
-    from yaml import CSafeLoader as SafeLoader
-except ImportError:
-    from yaml import SafeLoader  # type: ignore[assignment]
 
 import ua_extract
 from .lazy_regex import RegexLazyIgnore
@@ -41,11 +71,11 @@ class RegexLoader:
         yml_file_path = f'{ROOT}/{yfile}'
         if Path(yml_file_path).exists():
             with open(yml_file_path, 'r', encoding="utf-8") as yf:
-                return yaml.load(yf, SafeLoader)
+                return yaml_load(yf.read())
 
         try:
             yfile = f'ua_extract/{yfile}'
-            return yaml.load(ua_extract.__loader__.get_data(yfile), SafeLoader)  # type: ignore[union-attr]
+            return yaml_load(ua_extract.__loader__.get_data(yfile))  # type: ignore[union-attr]
         except OSError:
             if "upstream" in yfile:
                 warnings.warn(
@@ -55,6 +85,13 @@ class RegexLoader:
                 )
 
             return {}
+
+    @staticmethod
+    def build_automaton(words: set[str]):
+        if not words:
+            return None
+
+        return ACAutomaton(words)
 
     def yaml_to_list(self, yfile: str) -> list[dict[str, Any]]:
         """
@@ -96,7 +133,7 @@ class RegexLoader:
 
         return all_regexes
 
-    def load_ahocorasick_patterns(self) -> ahocorasick_rs.AhoCorasick | None:
+    def load_ahocorasick_patterns(self) -> ACAutomaton | None:
         """
         Load AhoCorasick words from file, or expand from regexes.
         """
@@ -114,7 +151,7 @@ class RegexLoader:
             if words := set(self.load_from_yaml(ac_fixture)):
                 all_corasick_words.update(words)  # type: ignore[arg-type]
 
-        ac = ahocorasick_rs.AhoCorasick(all_corasick_words) if all_corasick_words else None
+        ac = self.build_automaton(all_corasick_words)
         DDCache['corasick'][self.cache_name] = ac
 
         return ac

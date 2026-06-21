@@ -42487,7 +42487,7 @@ Farassoo:
 Xwave:
   regex: 'Xpad_(M9_3G)'
   device: 'tablet'
-  model: 'xPad \g<1>'# Xwave
+  model: 'xPad \g<1>' # Xwave
 
 # DEALDIG
 DEALDIG:

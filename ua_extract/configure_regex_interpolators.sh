@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_DIR="$SCRIPT_DIR/regexes"
 
-find "$BASE_DIR" -name "*.yml" -type f -exec sed -i -E 's/\$([1-5])/\\g<\1>/g' {} +
-find "$BASE_DIR" -name "*.yml" -type f -exec sed -i "s/eZee'Tab\\\\g/eZee'Tab\\\\\\\\g/g" {} +
+if [[ ! -d "$BASE_DIR" ]]; then
+    echo "Error: $BASE_DIR does not exist"
+    exit 1
+fi
+
+# BSD sed (macOS) requires a backup suffix argument for -i.
+# GNU sed (Linux) does not.
+if [[ "$OSTYPE" == darwin* ]]; then
+    SED_INPLACE=(-i '')
+else
+    SED_INPLACE=(-i)
+fi
+
+find "$BASE_DIR" -type f -name "*.yml" \
+    -exec sed "${SED_INPLACE[@]}" -E \
+        -e 's/\$([1-5])/\\g<\1>/g' \
+        -e "s/eZee'Tab\\\\g/eZee'Tab\\\\\\\\g/g" \
+        -e "s/(['\"])#/\1 #/g" \
+        {} +

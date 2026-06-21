@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 def get_version():
     with open('ua_extract/__init__.py', 'r') as f:
         line = f.readline()
-        match = re.match(r'__version__ = \'([\d\.]+)\'', line)
+        match = re.match(r'__version__ = \'([\d.]+)\'', line)
 
         if not match:
             raise ImportError("Can't read the version of device_detector")
@@ -22,7 +22,7 @@ def parse_requirements(filename):
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
 setup(
@@ -51,6 +51,9 @@ setup(
         '': ['*.yml', '*.sh'],
     },
     install_requires=parse_requirements('requirements.txt'),
+    extras_require={
+        "rust": parse_requirements('requirements-rust.txt'),
+    },
     entry_points={
         "console_scripts": [
             "ua_extract=ua_extract.__main__:main",
@@ -60,7 +63,6 @@ setup(
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
-        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',

@@ -11,13 +11,21 @@ try:
     from enum import StrEnum
 except ImportError:
     from backports.strenum import StrEnum
+
 from urllib.parse import unquote
 import unittest
-import yaml
+
 try:
-    from yaml import CSafeLoader as SafeLoader
+    import yaml_rs
+
+    def yaml_load(x):
+        return yaml_rs.loads(x)
+
 except ImportError:
-    from yaml import SafeLoader
+    import yaml
+
+    def yaml_load(x):
+        return yaml.safe_load(x)
 
 from ua_extract.parser import ClientHints
 from ..settings import ROOT
@@ -85,7 +93,7 @@ class Base(unittest.TestCase):
         fixtures = []
         for ffile in self.fixture_files:
             with open(f'{ROOT}/{ffile}', 'r') as r:
-                fixtures.extend(yaml.load(r, SafeLoader))
+                fixtures.extend(yaml_load(r.read()))
         return fixtures
 
 
@@ -215,7 +223,7 @@ class ParserBaseTest(Base):
         fixtures = []
         for ffile in self.fixture_files:
             with open(f'{ROOT}/{ffile}', 'r') as r:
-                fixtures.extend(yaml.load(r, SafeLoader))
+                fixtures.extend(yaml_load(r.read()))
         return fixtures
 
     def test_parsing(self):

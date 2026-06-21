@@ -3033,6 +3033,8 @@
   name: Google Drive
 - uaname: com.google.googlemobile
   name: Google Search App
+- uaname: com.google.gemini
+  name: Google Gemini
 - uaname: com.google.hangouts_ios
   name: Google Hangouts
 - uaname: com.google.b612
