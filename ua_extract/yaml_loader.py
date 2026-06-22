@@ -26,20 +26,6 @@ except ImportError:
         def find_matches_as_strings(self, text):
             return [match[0] for match in self._tree.search_all(text)]
 
-
-try:
-    import yaml_rs
-
-    def yaml_load(x):
-        return yaml_rs.loads(x)
-
-except ImportError:
-    import yaml
-
-    def yaml_load(x):
-        return yaml.safe_load(x)
-
-
 try:
     from typing import Self
 except ImportError:
@@ -49,6 +35,16 @@ import ua_extract
 from .lazy_regex import RegexLazyIgnore
 from .settings import BOUNDED_REGEX, DDCache, ROOT
 from .enums import AppType
+
+
+def yaml_load(x):
+    try:
+        import yaml_rs
+        return yaml_rs.loads(x)
+
+    except ImportError:
+        import yaml
+        return yaml.safe_load(x)
 
 
 class RegexLoader:
