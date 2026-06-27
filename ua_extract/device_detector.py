@@ -300,6 +300,18 @@ class DeviceDetector:
                 except KeyError:
                     self.all_details['device'] = device_data
 
+            # ponytail: assume Macintosh desktop for macOS if model is empty
+            if self.os_name() in ('Mac', 'Mac OS X', 'macOS') and not self.device_model():
+                device_data = {
+                    'brand': 'Apple',
+                    'model': 'Macintosh',
+                    'type': DeviceType.Desktop,
+                }
+                try:
+                    self.all_details['device'] |= device_data
+                except KeyError:
+                    self.all_details['device'] = device_data
+
         self.parsed = True
         DDCache['user_agents'][self.ua_hash] = self
         return self
