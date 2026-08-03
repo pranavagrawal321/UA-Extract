@@ -2188,7 +2188,7 @@
   version: '\g<1>'
   engine:
     default: ArkWeb
-- regex: 'UC[ ]?Browser(?:[ /]?(\d+[.\d]+))?'
+- regex: 'UC ?(?:Browser|Mobile)(?:[ /]?(\d+[.\d]+))?'
   name: 'UC Browser'
   version: '\g<1>'
 - regex: 'UCWEB(?:[ /]?(\d+[.\d]+))?'
