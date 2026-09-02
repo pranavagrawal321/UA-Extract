@@ -1455,7 +1455,7 @@
   version: '\g<1>'
 
 # Steam (https://www.valvesoftware.com/)
-- regex: 'Valve Steam GameOverlay/(?:(\d+[.\d]+))?'
+- regex: 'Valve Steam GameOverlay(?:/(\d+[.\d]+))?'
   name: 'Steam In-Game Overlay'
   version: '\g<1>'
 
